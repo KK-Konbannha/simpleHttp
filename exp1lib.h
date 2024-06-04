@@ -1,16 +1,16 @@
 typedef struct {
   char cmd[64];
   char path[256];
-  char real_path[256];
+  char real_path[512];
   char type[64];
+  char auth[256];
   int code;
   int size;
-} exp1_info_type;
+} info_type;
 
 int exp1_tcp_listen(int port);
-int exp1_http_session(int sock);
-int exp1_parse_header(char *buf, int size, exp1_info_type *info);
-void exp1_parse_status(char *status, exp1_info_type *pinfo);
-void exp1_check_file(exp1_info_type *info);
-void exp1_http_reply(int sock, exp1_info_type *info);
-void exp1_send_file(int sock, char *filename);
+
+int http_session(int sock);
+
+void check_file(info_type *info);
+void send_file(int sock, char *filename);

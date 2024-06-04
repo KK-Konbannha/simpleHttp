@@ -4,7 +4,7 @@
  * 400番台
  */
 
-void exp1_send_400(int sock) {
+void send_400(int sock) {
   char buf[16384];
   int ret;
 
@@ -18,7 +18,7 @@ void exp1_send_400(int sock) {
   }
 }
 
-void exp1_send_401(int sock) {
+void send_401(int sock) {
   char buf[16384];
   int ret;
 
@@ -35,7 +35,7 @@ void exp1_send_401(int sock) {
   }
 }
 
-void exp1_send_404(int sock) {
+void send_404(int sock) {
   char buf[16384];
   int ret;
 
@@ -53,7 +53,7 @@ void exp1_send_404(int sock) {
  * 500番台
  */
 
-void exp1_send_500(int sock) {
+void send_500(int sock) {
   char buf[16384];
   int ret;
 
@@ -67,7 +67,7 @@ void exp1_send_500(int sock) {
   }
 }
 
-void exp1_send_501(int sock) {
+void send_501(int sock) {
   char buf[16384];
   int ret;
 

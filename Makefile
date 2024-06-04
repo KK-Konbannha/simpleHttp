@@ -3,7 +3,7 @@ C++=g++
 LD=g++
 CFLAGS=-c -Wall -pedantic-errors -O3 -std=gnu11 -I../
 LDFLAGS=
-OBJECTS=main.o exp1lib.o
+OBJECTS=main.o exp1lib.o request_handler.o send_status.o
 EXECUTABLE=main
 
 all: $(EXECUTABLE)
