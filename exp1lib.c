@@ -47,11 +47,11 @@ void check_file(info_type *info) {
   int ret;
   char *pext;
 
-  sprintf(info->real_path, "html%s", info->path);
+  sprintf(info->real_path, "public%s", info->path);
   ret = stat(info->real_path, &s);
 
   if ((s.st_mode & S_IFMT) == S_IFDIR) {
-    sprintf(info->real_path, "%s/index.html", info->real_path);
+    sprintf(info->real_path, "public%s/index.html", info->path);
   }
 
   ret = stat(info->real_path, &s);

@@ -119,50 +119,46 @@ int parse_header(char *field, info_type *info) {
 }
 
 int parse_request(char *status, info_type *pinfo) {
-  char cmd[1024];
-  char path[1024];
-  int i, j;
+  char *cmd = NULL, *path = NULL, *version = NULL;
+  char *token = NULL, *saveptr = NULL;
 
-  enum state_type { SEARCH_CMD, SEARCH_PATH, SEARCH_END } state;
-
-  state = SEARCH_CMD;
-  j = 0;
-  for (i = 0; i < strlen(status); i++) {
-    switch (state) {
-    case SEARCH_CMD:
-      if (status[i] == ' ') {
-        cmd[j] = '\0';
-        j = 0;
-        state = SEARCH_PATH;
-      } else if (status[i] == '\r' || status[i] == '\n') {
-        return 0;
-      } else if (status[i] == '\0') {
-        return 0;
-      } else {
-        cmd[j] = status[i];
-        j++;
-      }
-      break;
-    case SEARCH_PATH:
-      if (status[i] == ' ') {
-        path[j] = '\0';
-        j = 0;
-        state = SEARCH_END;
-      } else if (status[i] == '\r' || status[i] == '\n') {
-        return 0;
-      } else if (status[i] == '\0') {
-        return 0;
-      } else {
-        path[j] = status[i];
-        j++;
-      }
-      break;
-    case SEARCH_END:;
-    }
+  char *status_copy = (char *)malloc(strlen(status) + 1);
+  if (status_copy == NULL) {
+    perror("malloc");
+    return 0;
   }
+  strcpy(status_copy, status);
+
+  token = strtok_r(status_copy, " ", &saveptr);
+  if (token == NULL) {
+    free(status_copy);
+    return 0;
+  }
+
+  cmd = token;
+  printf("cmd: %s\n", cmd);
+
+  token = strtok_r(NULL, " ", &saveptr);
+  if (token == NULL || token[0] != '/') {
+    free(status_copy);
+    return 0;
+  }
+
+  path = token;
+  printf("path: %s\n", path);
+
+  version = &status[strlen(cmd) + 1 + strlen(path) + 1];
+  if (strlen(version) <= 0 || strcmp(version, "HTTP/1.0") != 0 ||
+      strcmp(version, "HTTP/1.1") != 0) {
+    free(status_copy);
+    return 0;
+  }
+
+  printf("version: %s\n", version);
 
   strcpy(pinfo->cmd, cmd);
   strcpy(pinfo->path, path);
+  strcpy(pinfo->version, version);
 
   return 1;
 }

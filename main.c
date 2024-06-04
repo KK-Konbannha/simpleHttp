@@ -70,7 +70,7 @@ int http_session(int sock) {
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
   len = parse_request(token, &info);
   if (len != 1) {
-    printf("parse_status failed\n");
+    printf("parse request failed\n");
     send_400(sock);
     free(buf_copy);
     return -1;
@@ -84,6 +84,8 @@ int http_session(int sock) {
     // リクエスト部分を除いた残りのbufとそのサイズを渡す
     remaining_buf = buf + token_len + 2;
     remaining_size = sizeof(buf) - recv_size - token_len - 2;
+
+    printf("%s", buf);
 
     accept_get(sock, remaining_buf, remaining_size, &info,
                strcmp(info.cmd, "HEAD") == 0);

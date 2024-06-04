@@ -1,6 +1,7 @@
 typedef struct {
   char cmd[64];
   char path[256];
+  char version[64];
   char real_path[512];
   char type[64];
   char auth[256];
