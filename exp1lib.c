@@ -1,5 +1,6 @@
 #include "exp1lib.h"
 #include "exp1.h"
+#include "sendStatus.h"
 
 int exp1_tcp_listen(int port) {
   int sock;
@@ -65,20 +66,6 @@ void exp1_send_file(int sock, char *filename) {
   }
 
   fclose(fp);
-}
-
-void exp1_send_404(int sock) {
-  char buf[16384];
-  int ret;
-
-  sprintf(buf, "HTTP/1.0 404 Not Found\r\n\r\n");
-  printf("%s", buf);
-  ret = send(sock, buf, strlen(buf), 0);
-
-  if (ret < 0) {
-    shutdown(sock, SHUT_RDWR);
-    close(sock);
-  }
 }
 
 void exp1_http_reply(int sock, exp1_info_type *info) {

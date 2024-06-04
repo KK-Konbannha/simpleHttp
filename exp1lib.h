@@ -13,5 +13,4 @@ int exp1_parse_header(char *buf, int size, exp1_info_type *info);
 void exp1_parse_status(char *status, exp1_info_type *pinfo);
 void exp1_check_file(exp1_info_type *info);
 void exp1_http_reply(int sock, exp1_info_type *info);
-void exp1_send_404(int sock);
 void exp1_send_file(int sock, char *filename);
