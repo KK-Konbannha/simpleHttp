@@ -7,6 +7,7 @@ typedef struct {
   char auth[256];
   int code;
   int size;
+  char date[64];
 } info_type;
 
 int exp1_tcp_listen(int port);

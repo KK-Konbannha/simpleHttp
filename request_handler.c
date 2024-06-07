@@ -148,8 +148,8 @@ int parse_request(char *status, info_type *pinfo) {
   printf("path: %s\n", path);
 
   version = &status[strlen(cmd) + 1 + strlen(path) + 1];
-  if (strlen(version) <= 0 || strcmp(version, "HTTP/1.0") != 0 ||
-      strcmp(version, "HTTP/1.1") != 0) {
+  if (strlen(version) <= 0 ||
+      (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")) != 0) {
     free(status_copy);
     return 0;
   }
@@ -183,7 +183,7 @@ void http_reply(int sock, info_type *info, int is_head) {
   len = sprintf(buf, "HTTP/1.0 200 OK\r\n");
   len += sprintf(buf + len, "Content-Length: %d\r\n", info->size);
   len += sprintf(buf + len, "Content-Type: %s\r\n", info->type);
-  len += sprintf(buf + len, "\r\n");
+  // len += sprintf(buf + len, "\r\n");
 
   ret = send(sock, buf, len, 0);
   if (ret < 0) {
@@ -192,7 +192,23 @@ void http_reply(int sock, info_type *info, int is_head) {
     return;
   }
 
-  if (is_head == 0) {
-    send_file(sock, info->real_path);
+  if (is_head == 0 && info->code == 200) {
+    if (strcmp(info->type, "application/json") == 0) {
+      send(sock, "\r\n", 2, 0);
+
+      char buf2[16384];
+      len = 0;
+      len = sprintf(buf2, "This is loaded data!!\r\n");
+      len += sprintf(buf2 + len, "%s\r\n", info->date);
+      ret = send(sock, buf2, len, 0);
+      if (ret < 0) {
+        shutdown(sock, SHUT_RDWR);
+        close(sock);
+        return;
+      }
+    } else {
+      send(sock, "\r\n", 2, 0);
+      send_file(sock, info->real_path);
+    }
   }
 }

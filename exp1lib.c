@@ -47,6 +47,21 @@ void check_file(info_type *info) {
   int ret;
   char *pext;
 
+  if (strcmp(info->path, "/") == 0) {
+    strcpy(info->path, "/index.html");
+  }
+
+  if (strncmp(info->path, "/api/data", 4) == 0) {
+    info->code = 200;
+    strcpy(info->type, "application/json");
+    time_t t = time(NULL);
+    strcpy(info->date, ctime(&t));
+    info->size = strlen("This is loaded data!!\r\n");
+    info->size += strlen(info->date);
+    info->size += strlen("\r\n");
+    return;
+  }
+
   sprintf(info->real_path, "public%s", info->path);
   ret = stat(info->real_path, &s);
 
@@ -68,6 +83,8 @@ void check_file(info_type *info) {
     strcpy(info->type, "text/html");
   } else if (pext != NULL && strcmp(pext, ".jpg") == 0) {
     strcpy(info->type, "image/jpeg");
+  } else if (pext != NULL && strcmp(pext, ".js") == 0) {
+    strcpy(info->type, "application/javascript");
   }
 }
 

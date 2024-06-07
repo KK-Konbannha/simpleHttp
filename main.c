@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 int http_session(int sock) {
   int recv_size = 0, len = 0, token_len = 0, remaining_size = 0;
-  char buf[2048] = "";
+  char buf[4096] = "";
   info_type info = {0};
   char *token = NULL, *saveptr = NULL, *remaining_buf = NULL;
 
