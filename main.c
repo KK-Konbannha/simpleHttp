@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
 int http_session(int sock) {
   int recv_size = 0, len = 0, token_len = 0, remaining_size = 0;
-  char buf[4096] = "";
+  char buf[8192] = "";
   info_type info = {0};
   char *token = NULL, *saveptr = NULL, *remaining_buf = NULL;
 
@@ -69,9 +69,14 @@ int http_session(int sock) {
   // リクエスト部分を解析
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
   len = parse_request(token, &info);
-  if (len != 1) {
+  if (len == 0) {
     printf("parse request failed\n");
     send_400(sock);
+    free(buf_copy);
+    return -1;
+  } else if (len == -1) {
+    printf("too long url\n");
+    send_414(sock);
     free(buf_copy);
     return -1;
   }
@@ -80,7 +85,7 @@ int http_session(int sock) {
 
   // 解析結果のメソッドがGET, HEADでない場合
   // 501 Not Implementedを返す
-  if (strcmp(info.cmd, "GET") == 0 || strcmp(info.cmd, "HEAD") == 0) {
+  if (strcmp(info.method, "GET") == 0 || strcmp(info.method, "HEAD") == 0) {
     // リクエスト部分を除いた残りのbufとそのサイズを渡す
     remaining_buf = buf + token_len + 2;
     remaining_size = sizeof(buf) - recv_size - token_len - 2;
@@ -88,9 +93,17 @@ int http_session(int sock) {
     printf("%s", buf);
 
     accept_get(sock, remaining_buf, remaining_size, &info,
-               strcmp(info.cmd, "HEAD") == 0);
-  } else {
+               strcmp(info.method, "HEAD") == 0);
+
+  } else if (strcmp(info.method, "POST") == 0 ||
+             strcmp(info.method, "PUT") == 0 ||
+             strcmp(info.method, "DELETE") == 0 ||
+             strcmp(info.method, "OPTIONS") == 0 ||
+             strcmp(info.method, "TRACE") == 0 ||
+             strcmp(info.method, "CONNECT") == 0) {
     send_501(sock);
+  } else {
+    send_400(sock);
   }
 
   return 0;

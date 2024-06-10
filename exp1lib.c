@@ -14,12 +14,6 @@ int exp1_tcp_listen(int port) {
     exit(1);
   }
 
-  // Test Code: check socket buffer size
-  //	socklen_t slen;
-  //	int sockBufSize;
-  //	getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &sockBufSize, &slen);
-  //	printf("Socket Buffer Size(default): %d\n", sockBufSize);
-
   bzero((char *)&addr, sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_ANY);

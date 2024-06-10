@@ -119,7 +119,7 @@ int parse_header(char *field, info_type *info) {
 }
 
 int parse_request(char *status, info_type *pinfo) {
-  char *cmd = NULL, *path = NULL, *version = NULL;
+  char *method = NULL, *path = NULL, *version = NULL;
   char *token = NULL, *saveptr = NULL;
 
   char *status_copy = (char *)malloc(strlen(status) + 1);
@@ -135,20 +135,28 @@ int parse_request(char *status, info_type *pinfo) {
     return 0;
   }
 
-  cmd = token;
-  printf("cmd: %s\n", cmd);
+  method = token;
+  if (strlen(method) > 7) {
+    free(status_copy);
+    return 0;
+  }
+  printf("method: %s\n", method);
 
   token = strtok_r(NULL, " ", &saveptr);
-  if (token == NULL || token[0] != '/') {
+  if (token == NULL || token[0] != '/' || strlen(token) > 255) {
     free(status_copy);
     return 0;
   }
 
   path = token;
+  if (strlen(path) > 255) {
+    free(status_copy);
+    return -1;
+  }
   printf("path: %s\n", path);
 
-  version = &status[strlen(cmd) + 1 + strlen(path) + 1];
-  if (strlen(version) <= 0 ||
+  version = &status[strlen(method) + 1 + strlen(path) + 1];
+  if (strlen(version) <= 0 || strlen(version) > 9 ||
       (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")) != 0) {
     free(status_copy);
     return 0;
@@ -156,7 +164,7 @@ int parse_request(char *status, info_type *pinfo) {
 
   printf("version: %s\n", version);
 
-  strcpy(pinfo->cmd, cmd);
+  strcpy(pinfo->method, method);
   strcpy(pinfo->path, path);
   strcpy(pinfo->version, version);
 

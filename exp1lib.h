@@ -1,10 +1,10 @@
 typedef struct {
-  char cmd[64];
+  char method[8];
   char path[256];
-  char version[64];
+  char version[10];
   char real_path[512];
-  char type[64];
-  char auth[256];
+  char type[128];
+  char auth[1024];
   int code;
   int size;
   char date[64];
