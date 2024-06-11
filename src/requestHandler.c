@@ -1,6 +1,6 @@
-#include "requestHandler.h"
-#include "exp1.h"
-#include "sendStatus.h"
+#include "../include/requestHandler.h"
+#include "../include/exp1.h"
+#include "../include/sendStatus.h"
 
 void accept_get(int sock, char *buf, int remaining_size, info_type *info,
                 int is_head) {

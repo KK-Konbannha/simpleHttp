@@ -1,4 +1,5 @@
-#include "exp1.h"
+#include "../include/sendStatus.h"
+#include "../include/exp1.h"
 
 /*
  * 400番台
