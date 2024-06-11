@@ -9,7 +9,7 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
 
   while (1) {
-    printf("buf: %s\n", buf);
+    printf("--buf\n%s\n", buf);
     printf("recv_size: %d\n", recv_size);
     printf("remaining_size: %d\n", remaining_size);
 
@@ -45,16 +45,16 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
     remaining_size -= let;
   }
 
-  printf("buf: %s\n", buf);
+  printf("--buf\n%s\n", buf);
 
   // strtok_rで使用するためのコピーを作成
-  char *buf_copy = (char *)malloc(recv_size + 1);
+  char *buf_copy = (char *)malloc(strlen(buf) + 1);
   if (buf_copy == NULL) {
     perror("malloc");
     send_500(sock);
     return;
   }
-  strlcpy(buf_copy, buf, recv_size + 1);
+  strncpy(buf_copy, buf, strlen(buf) + 1);
 
   // ヘッダーがあるなら解釈する
   // \r\nで残りを分割してparse_fieldで解釈
@@ -108,7 +108,6 @@ int parse_header(char *field, info_type *info) {
   key = token;
   value = field + strlen(key) + 2;
   printf("key: %s, value: %s\n", key, value);
-  printf("value: %s\n", value);
 
   if (strcmp(key, "Authorization") == 0) {
     strcpy(info->auth, value);
