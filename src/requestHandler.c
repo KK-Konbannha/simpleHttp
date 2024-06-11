@@ -1,5 +1,6 @@
 #include "../include/requestHandler.h"
 #include "../include/exp1.h"
+#include "../include/router.h"
 #include "../include/sendStatus.h"
 
 void accept_get(int sock, char *buf, int remaining_size, info_type *info,
@@ -80,11 +81,14 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   //  return;
   // }
 
-  // ファイルの有無をチェック
-  check_file(info);
+  // // ファイルの有無をチェック
+  // check_file(info);
 
-  // 返答する
-  http_reply(sock, info, is_head);
+  // // 返答する
+  // http_reply(sock, info, is_head);
+
+  // ルーティング
+  route_request(sock, info->path);
 
   return;
 }

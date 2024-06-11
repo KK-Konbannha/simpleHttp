@@ -1,1 +1,1 @@
-void route_request(const char *path);
+void route_request(int sock, const char *path);
