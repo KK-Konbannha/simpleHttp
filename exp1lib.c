@@ -1,6 +1,6 @@
 #include "exp1lib.h"
 #include "exp1.h"
-#include "send_status.h"
+#include "sendStatus.h"
 
 int exp1_tcp_listen(int port) {
   int sock;

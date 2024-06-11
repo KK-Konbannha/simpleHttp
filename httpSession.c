@@ -1,6 +1,6 @@
 #include "exp1.h"
-#include "request_handler.h"
-#include "send_status.h"
+#include "requestHandler.h"
+#include "sendStatus.h"
 
 int http_session(int sock) {
   int recv_size = 0, len = 0, token_len = 0, remaining_size = 0;
