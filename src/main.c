@@ -1,6 +1,6 @@
-#include "acceptLoop.h"
-#include "exp1.h"
-#include "requestHandler.h"
+#include "../include/acceptLoop.h"
+#include "../include/exp1.h"
+#include "../include/requestHandler.h"
 
 int http_session(int sock);
 
@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
   sock_listen = exp1_tcp_listen(port);
 
-  acceptLoop(sock_listen);
+  accept_loop(sock_listen);
 
   close(sock_listen);
 

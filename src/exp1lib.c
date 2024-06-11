@@ -1,6 +1,5 @@
-#include "exp1lib.h"
-#include "exp1.h"
-#include "sendStatus.h"
+#include "../include/exp1.h"
+#include "../include/sendStatus.h"
 
 int exp1_tcp_listen(int port) {
   int sock;
@@ -34,6 +33,17 @@ int exp1_tcp_listen(int port) {
   }
 
   return sock;
+}
+
+void get_file_info(FILE *fp, return_info_t *info) {
+  fseek(fp, 0, SEEK_END);
+  info->size = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+
+  info->body = (char *)malloc(info->size);
+  fread(info->body, sizeof(char), info->size, fp);
+
+  return;
 }
 
 void check_file(info_type *info) {

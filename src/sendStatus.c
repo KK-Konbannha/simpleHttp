@@ -1,4 +1,39 @@
-#include "exp1.h"
+#include "../include/sendStatus.h"
+#include "../include/exp1.h"
+
+/*
+ * 200番台
+ */
+
+void send_200(int sock, return_info_t *info) {
+  char buf[256];
+  int ret;
+
+  // 200 OK
+  sprintf(buf, "HTTP/1.0 200 OK\r\n");
+  sprintf(buf + strlen(buf), "Content-Type: %s\r\n", info->type);
+  sprintf(buf + strlen(buf), "Content-Length: %d\r\n", info->size);
+  sprintf(buf + strlen(buf), "\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    perror("send");
+    return;
+  }
+
+  // bodyの送信
+  ret = send(sock, info->body, info->size, 0);
+  if (ret < 0) {
+    perror("send");
+    return;
+  }
+
+  return;
+}
 
 /*
  * 400番台
