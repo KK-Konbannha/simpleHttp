@@ -134,7 +134,7 @@ void handle_api(int sock, const char *path) {
   } else if (strcmp(path, "/api/count") == 0) {
     // Handle the count api
     return_info_t info;
-    static int count = 0;
+    int count = 0;
     char buf[64];
     sprintf(buf, "{\"count\": %d}\n", count);
 
@@ -163,13 +163,45 @@ void handle_static(int sock, const char *path) {
   }
 
   if (strncmp(path, "/static/img/", 12) == 0) {
-
     if (strcmp(ext, ".png") == 0) {
       strcpy(info.type, "image/png");
-    } else if (strcmp(ext, ".jpg") == 0) {
+    } else if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0) {
       strcpy(info.type, "image/jpeg");
     } else if (strcmp(ext, ".gif") == 0) {
       strcpy(info.type, "image/gif");
+    } else if (strcmp(ext, ".svg") == 0) {
+      strcpy(info.type, "image/svg+xml");
+    } else if (strcmp(ext, ".tiff") == 0) {
+      strcpy(info.type, "image/tiff");
+    } else if (strcmp(ext, ".bmp") == 0) {
+      strcpy(info.type, "image/bmp");
+    } else if (strcmp(ext, ".ico") == 0) {
+      strcpy(info.type, "image/x-icon");
+    } else if (strcmp(ext, ".avif") == 0) {
+      strcpy(info.type, "image/avif");
+    } else if (strcmp(ext, ".webp") == 0) {
+      strcpy(info.type, "image/webp");
+    } else {
+      send_404(sock);
+      return;
+    }
+
+    free(path_copy);
+
+    char *filename = (char *)malloc(strlen(path) + 8);
+    sprintf(filename, "public%s", path);
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+      send_404(sock);
+      return;
+    }
+
+    get_file_info(fp, &info);
+    send_200(sock, &info);
+
+  } else if (strncmp(path, "/static/video/", 14) == 0) {
+    if (strcmp(ext, ".mp4") == 0) {
+      strcpy(info.type, "video/mp4");
     } else {
       send_404(sock);
       return;
