@@ -36,6 +36,76 @@ void send_200(int sock, return_info_t *info) {
 }
 
 /*
+ * 300番台
+ */
+
+void send_301(int sock, char *location) {
+  char buf[256];
+  int ret;
+
+  // 301 Moved Permanently
+  sprintf(buf, "HTTP/1.0 301 Moved Permanently\r\n");
+  sprintf(buf + strlen(buf), "Location: %s\r\n", location);
+  sprintf(buf + strlen(buf), "\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    perror("send");
+    return;
+  }
+
+  return;
+}
+
+void send_302(int sock, char *location) {
+  char buf[256];
+  int ret;
+
+  // 302 Found
+  sprintf(buf, "HTTP/1.0 302 Found\r\n");
+  sprintf(buf + strlen(buf), "Location: %s\r\n", location);
+  sprintf(buf + strlen(buf), "\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    perror("send");
+    return;
+  }
+
+  return;
+}
+
+void send_303(int sock, char *location) {
+  char buf[256];
+  int ret;
+
+  // 303 See Other
+  sprintf(buf, "HTTP/1.0 303 See Other\r\n");
+  sprintf(buf + strlen(buf), "Location: %s\r\n", location);
+  sprintf(buf + strlen(buf), "\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    perror("send");
+    return;
+  }
+
+  return;
+}
+
+/*
  * 400番台
  */
 

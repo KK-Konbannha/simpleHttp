@@ -40,6 +40,44 @@ void handle_test(int sock) {
   return;
 }
 
+void handle_new(int sock) {
+  return_info_t info;
+
+  FILE *fp = fopen("public/new.html", "r");
+  if (fp == NULL) {
+    send_404(sock);
+    return;
+  }
+
+  get_file_info(fp, &info);
+  strcpy(info.type, "text/html");
+
+  send_200(sock, &info);
+
+  fclose(fp);
+
+  return;
+}
+
+void handle_done(int sock) {
+  return_info_t info;
+
+  FILE *fp = fopen("public/done.html", "r");
+  if (fp == NULL) {
+    send_404(sock);
+    return;
+  }
+
+  get_file_info(fp, &info);
+  strcpy(info.type, "text/html");
+
+  send_200(sock, &info);
+
+  fclose(fp);
+
+  return;
+}
+
 void handle_api(int sock, const char *path) {
   if (strcmp(path, "/api/echo") == 0) {
     // Handle the echo api
