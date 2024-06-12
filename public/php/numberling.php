@@ -1,6 +1,6 @@
 <?php
 
-$files = glob("*.jpg");
+$files = glob("../static/img/*.jpg");
 
 $i = 0;
 foreach($files as $file){

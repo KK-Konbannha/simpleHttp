@@ -10,7 +10,7 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
 
   while (1) {
-    printf("--buf\n%s\n", buf);
+    printf("--buf\n%s\n\n", buf);
     printf("recv_size: %d\n", recv_size);
     printf("remaining_size: %d\n", remaining_size);
 
@@ -46,7 +46,7 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
     remaining_size -= let;
   }
 
-  printf("--buf\n%s\n", buf);
+  printf("--buf\n%s\n\n", buf);
 
   // strtok_rで使用するためのコピーを作成
   char *buf_copy = (char *)malloc(strlen(buf) + 1);
@@ -58,14 +58,14 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   strncpy(buf_copy, buf, strlen(buf) + 1);
 
   // ヘッダーがあるなら解釈する
-  // \r\nで残りを分割してparse_fieldで解釈
+  // \r\nで残りを分割してparse_headerで解釈
   // (なければ初めから終了条件が満たされる)
   for (token = strtok_r(buf_copy, "\r\n", &saveptr); token;
        token = strtok_r(NULL, "\r\n", &saveptr)) {
     printf("token: %s\n", token);
     let = parse_header(token, info);
     if (let != 1) {
-      printf("parse_field failed\n");
+      printf("parse_header failed\n");
       send_400(sock);
       free(buf_copy);
       return;
@@ -81,14 +81,161 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   //  return;
   // }
 
-  // // ファイルの有無をチェック
-  // check_file(info);
+  // ルーティング
+  route_get_request(sock, info->path);
 
-  // // 返答する
-  // http_reply(sock, info, is_head);
+  return;
+}
+
+void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
+  int let = 0, recv_size = 0;
+  int find_end = 0, is_remaining_body = 0;
+  char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL, *body = NULL;
+
+  while (1) {
+    printf("--buf\n%s\n\n", buf);
+    printf("recv_size: %d\n", recv_size);
+    printf("remaining_size: %d\n", remaining_size);
+
+    // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
+    start = buf;
+    while ((end = strstr(start, "\r\n")) != NULL) {
+      if (end == start) {
+        find_end = 1;
+        break;
+      }
+      start = end + 2;
+    }
+
+    if (find_end == 1) {
+      break;
+    }
+
+    // バッファがいっぱいになった場合
+    if (remaining_size <= 0) {
+      printf("remaining_size is 0\n");
+      send_400(sock);
+      return;
+    }
+
+    let = recv(sock, buf + recv_size, remaining_size, 0);
+    if (let <= 0) {
+      shutdown(sock, SHUT_RDWR);
+      close(sock);
+      return;
+    }
+
+    recv_size += let;
+    remaining_size -= let;
+  }
+
+  printf("--buf\n%s\n\n", buf);
+
+  if (strcmp(buf, "\r\n") == 0) {
+    send_400(sock);
+    return;
+  }
+
+  // strtok_rで使用するためのコピーを作成
+  char *buf_copy = (char *)malloc(strlen(buf) + 1);
+  if (buf_copy == NULL) {
+    perror("malloc");
+    send_500(sock);
+    return;
+  }
+  strncpy(buf_copy, buf, strlen(buf) + 1);
+
+  info->content_length = 0;
+
+  // ヘッダーがあるなら解釈する
+  // \r\nで残りを分割してparse_headerで解釈
+  // (なければ初めから終了条件が満たされる)
+  for (token = strtok_r(buf_copy, "\r\n", &saveptr); token;
+       token = strtok_r(NULL, "\r\n", &saveptr)) {
+    size_t token_offset = token - buf_copy;
+    if (token_offset < 4) {
+      continue;
+    } else {
+      const char *original_pos = buf + token_offset;
+      printf("token_offset: %ld\n", token_offset);
+      printf("strncmp: %d\n", strncmp(original_pos - 4, "\r\n\r\n", 4));
+
+      if (strncmp(original_pos - 4, "\r\n\r\n", 4) == 0) {
+        is_remaining_body = 1;
+      }
+    }
+
+    if (is_remaining_body) {
+      break;
+    }
+
+    printf("token: %s\n", token);
+    let = parse_header(token, info);
+    if (let != 1) {
+      printf("parse_header failed\n");
+      send_400(sock);
+      free(buf_copy);
+      return;
+    }
+  }
+
+  // 認証情報があるか、正しいかをチェック
+  // なければ401を返す
+  // if (check_auth(info)) {
+  // send_401(sock);
+  // return;
+  // }
+
+  // content-lengthがあるかチェック
+  // なければ400を返す
+  if (info->content_length == 0) {
+    printf("content-length is 0\n");
+    send_400(sock);
+    return;
+  }
+
+  // ボディ部分を取得
+  // ボディ部分が残っている場合はそれを使う
+  recv_size = 0;
+  body = (char *)malloc(info->content_length + 1);
+  if (is_remaining_body) {
+    if (token == NULL) {
+      printf("token is NULL\n");
+
+      send_500(sock);
+      free(body);
+      free(buf_copy);
+      return;
+    }
+
+    strcpy(body, token);
+    recv_size = strlen(token);
+  }
+
+  free(buf_copy);
+
+  while (1) {
+    if (recv_size >= info->content_length) {
+      break;
+    }
+
+    let = recv(sock, body + recv_size, info->content_length - recv_size, 0);
+    if (let <= 0) {
+      shutdown(sock, SHUT_RDWR);
+      close(sock);
+      return;
+    }
+
+    recv_size += let;
+  }
+
+  body[info->content_length] = '\0';
+  printf("body: %s\n\n", body);
 
   // ルーティング
-  route_request(sock, info->path);
+  route_post_request(sock, info->path, body);
+
+  free(body);
 
   return;
 }
@@ -116,6 +263,9 @@ int parse_header(char *field, info_type *info) {
   if (strcmp(key, "Authorization") == 0) {
     strcpy(info->auth, value);
     printf("auth: %s\n", info->auth);
+  } else if (strcmp(key, "Content-Length") == 0) {
+    info->content_length = atoi(value);
+    printf("content-length: %d\n", info->content_length);
   }
 
   return 1;

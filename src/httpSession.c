@@ -66,13 +66,19 @@ int http_session(int sock) {
     remaining_buf = buf + token_len + 2;
     remaining_size = sizeof(buf) - recv_size - token_len - 2;
 
-    printf("%s", buf);
+    printf("--buf\n%s\n\n", buf);
 
     accept_get(sock, remaining_buf, remaining_size, &info,
                strcmp(info.method, "HEAD") == 0);
 
-  } else if (strcmp(info.method, "POST") == 0 ||
-             strcmp(info.method, "PUT") == 0 ||
+  } else if (strcmp(info.method, "POST") == 0) {
+    remaining_buf = buf + token_len + 2;
+    remaining_size = sizeof(buf) - recv_size - token_len - 2;
+
+    printf("--buf\n%s\n\n", buf);
+
+    accept_post(sock, remaining_buf, remaining_size, &info);
+  } else if (strcmp(info.method, "PUT") == 0 ||
              strcmp(info.method, "DELETE") == 0 ||
              strcmp(info.method, "OPTIONS") == 0 ||
              strcmp(info.method, "TRACE") == 0 ||

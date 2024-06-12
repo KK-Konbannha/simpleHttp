@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <h1>You have successfully submitted the form!</h1>
+    <!--<h1>You have successfully submitted the form!</h1>-->
+    <h1><span id="name">You have</span> successfully submitted the form!</h1>
+
+    <script>
+      const urlQuery = new URLSearchParams(window.location.search);
+      const name = urlQuery.get("name");
+      if (name) {
+        document.getElementById("name").textContent = name + ",";
+      }
+    </script>
   </body>
 </html>

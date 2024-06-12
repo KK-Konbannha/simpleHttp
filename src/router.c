@@ -3,7 +3,7 @@
 #include "../include/handlers.h"
 #include "../include/sendStatus.h"
 
-void route_request(int sock, const char *path) {
+void route_get_request(int sock, const char *path) {
   if (strstr(path, "..") != NULL || strstr(path, "//") != NULL ||
       strstr(path, "~") != NULL) {
     // Handle the 400 path
@@ -13,7 +13,7 @@ void route_request(int sock, const char *path) {
     return;
   }
 
-  FILE *conf_file = fopen("server.conf", "r");
+  FILE *conf_file = fopen("redirecting.csv", "r");
   if (conf_file == NULL) {
     // Handle the 500 path
     // 500 Internal Server Error
@@ -46,10 +46,6 @@ void route_request(int sock, const char *path) {
         // Handle the 302 path
         // 302 Found
         send_302(sock, new_path);
-      } else if (strcmp(code, "303") == 0) {
-        // Handle the 303 path
-        // 303 See Other
-        send_303(sock, new_path);
       } else {
         continue;
       }
@@ -59,37 +55,50 @@ void route_request(int sock, const char *path) {
   }
 
   if (strcmp(path, "/") == 0 || strcmp(path, "/index.html") == 0) {
-    // Handle the root path
     handle_index(sock);
   } else if (strcmp(path, "/test.html") == 0) {
-    // Handle the test path
     handle_test(sock);
+  } else if (strcmp(path, "/test_cgi") == 0) {
+    handle_test_cgi(sock);
   } else if (strcmp(path, "/moved") == 0) {
-    // Handle the moved path
     // dummy function
     handle_index(sock);
   } else if (strcmp(path, "/maintenance") == 0) {
-    // Handle the maintenance path
     // dummy function
     handle_index(sock);
-  } else if (strcmp(path, "/from") == 0) {
-    // Handle the from path
+  } else if (strcmp(path, "/form") == 0) {
     // dummy function
     handle_index(sock);
   } else if (strcmp(path, "/new") == 0) {
-    // Handle the new path
     handle_new(sock);
-  } else if (strcmp(path, "/done") == 0) {
-    // Handle the done path
+  } else if (strncmp(path, "/done", 5) == 0) {
     handle_done(sock);
   } else if (strncmp(path, "/api/", 5) == 0) {
-    // Handle the API path
     handle_api(sock, path);
   } else if (strncmp(path, "/static/", 8) == 0) {
-    // Handle the static path
     handle_static(sock, path);
   } else {
-    // Handle the 404 path
+    send_404(sock);
+
+    return;
+  }
+
+  return;
+}
+
+void route_post_request(int sock, const char *path, char *body) {
+  if (strstr(path, "..") != NULL || strstr(path, "//") != NULL ||
+      strstr(path, "~") != NULL) {
+    // Handle the 400 path
+    // 400 Bad Request
+    send_400(sock);
+
+    return;
+  }
+
+  if (strcmp(path, "/form") == 0) {
+    handle_form(sock, body);
+  } else {
     send_404(sock);
 
     return;

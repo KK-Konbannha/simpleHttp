@@ -40,6 +40,37 @@ void handle_test(int sock) {
   return;
 }
 
+void handle_test_cgi(int sock) {
+  return_info_t info;
+  char const *filename = "public/test_cgi.cgi";
+  char *command = (char *)malloc(strlen(filename) + strlen("./") + 1);
+  char output[1024] = "";
+  char *all_output = (char *)malloc(16384);
+
+  sprintf(command, "./%s", filename);
+
+  FILE *fp = popen(command, "r");
+  if (fp == NULL) {
+    send_404(sock);
+    return;
+  }
+
+  while (fgets(output, sizeof(output), fp) != NULL) {
+    strcat(all_output, output);
+  }
+
+  info.body = all_output;
+  info.size = strlen(info.body);
+  strcpy(info.type, "text/html");
+
+  send_200(sock, &info);
+
+  pclose(fp);
+  free(command);
+
+  return;
+}
+
 void handle_new(int sock) {
   return_info_t info;
 
@@ -176,6 +207,23 @@ void handle_static(int sock, const char *path) {
     send_404(sock);
     return;
   }
+
+  return;
+}
+
+void handle_form(int sock, char *body) {
+  char *name = strstr(body, "name=");
+  if (name == NULL) {
+    send_404(sock);
+    return;
+  }
+  printf("name: %s\n", name);
+
+  char *return_url = (char *)malloc(strlen("/done?name=") + strlen(name) + 1);
+
+  sprintf(return_url, "/done?name=%s", name + 5);
+
+  send_303(sock, return_url);
 
   return;
 }

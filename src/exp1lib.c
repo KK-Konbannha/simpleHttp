@@ -39,6 +39,11 @@ void get_file_info(FILE *fp, return_info_t *info) {
   fseek(fp, 0, SEEK_END);
   info->size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
+  if (info->size <= 0) {
+    info->size = 0;
+    info->body = NULL;
+    return;
+  }
 
   info->body = (char *)malloc(info->size);
   fread(info->body, sizeof(char), info->size, fp);
