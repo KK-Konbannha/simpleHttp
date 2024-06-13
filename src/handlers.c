@@ -175,8 +175,6 @@ void handle_static(int sock, const char *path) {
       strcpy(info.type, "image/tiff");
     } else if (strcmp(ext, ".bmp") == 0) {
       strcpy(info.type, "image/bmp");
-    } else if (strcmp(ext, ".ico") == 0) {
-      strcpy(info.type, "image/x-icon");
     } else if (strcmp(ext, ".avif") == 0) {
       strcpy(info.type, "image/avif");
     } else if (strcmp(ext, ".webp") == 0) {
@@ -211,7 +209,7 @@ void handle_static(int sock, const char *path) {
 
     char *filename = (char *)malloc(strlen(path) + 8);
     sprintf(filename, "public%s", path);
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, "rb");
     if (fp == NULL) {
       send_404(sock);
       return;
@@ -221,6 +219,25 @@ void handle_static(int sock, const char *path) {
     send_200(sock, &info);
 
   } else if (strncmp(path, "/static/css/", 12) == 0) {
+    if (strcmp(ext, ".css") != 0) {
+      send_404(sock);
+      return;
+    }
+
+    free(path_copy);
+
+    char *filename = (char *)malloc(strlen(path) + 8);
+    sprintf(filename, "public%s", path);
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+      send_404(sock);
+      return;
+    }
+
+    get_file_info(fp, &info);
+    strcpy(info.type, "text/css");
+
+    send_200(sock, &info);
 
   } else if (strncmp(path, "/static/js/", 11) == 0 && strcmp(ext, ".js") == 0) {
     strcpy(info.type, "application/javascript");

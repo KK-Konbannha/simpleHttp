@@ -13,6 +13,55 @@ void route_get_request(int sock, const char *path) {
     return;
   }
 
+  char line[1024] = "";
+  char *token = NULL, *code = NULL, *rejection_path = NULL, *old_path = NULL,
+       *new_path = NULL;
+
+  FILE *rejection_file = fopen("rejection.csv", "r");
+  if (rejection_file == NULL) {
+    // Handle the 500 path
+    // 500 Internal Server Error
+    perror("Error opening rejection file");
+    send_500(sock);
+
+    return;
+  }
+
+  while (fgets(line, sizeof(line), rejection_file)) {
+    token = strtok(line, ",");
+    code = token;
+    token = strtok(NULL, ",");
+    rejection_path = token;
+    rejection_path[strlen(rejection_path) - 1] = '\0';
+
+    printf("path: %s\n", path);
+    printf("code: %s, path: %s\n", code, rejection_path);
+    printf("strcmp: %d\n", strcmp(path, rejection_path));
+
+    if (strcmp(path, rejection_path) == 0) {
+      if (strcmp(code, "403") == 0) {
+        // Handle the 403 path
+        // 403 Forbidden
+        send_403(sock);
+      } else if (strcmp(code, "404") == 0) {
+        // Handle the 404 path
+        // 404 Not Found
+        send_404(sock);
+      } else if (strcmp(code, "418") == 0) {
+        // Handle the 418 path
+        // 418 I'm a teapot
+        send_418(sock);
+      } else {
+        continue;
+      }
+
+      return;
+    }
+  }
+
+  strcpy(line, "");
+  token = NULL, code = NULL;
+
   FILE *conf_file = fopen("redirecting.csv", "r");
   if (conf_file == NULL) {
     // Handle the 500 path
@@ -22,12 +71,6 @@ void route_get_request(int sock, const char *path) {
 
     return;
   }
-
-  char line[1024];
-  char *token;
-  char *code;
-  char *old_path;
-  char *new_path;
 
   while (fgets(line, sizeof(line), conf_file)) {
     token = strtok(line, ",");
@@ -46,6 +89,10 @@ void route_get_request(int sock, const char *path) {
         // Handle the 302 path
         // 302 Found
         send_302(sock, new_path);
+      } else if (strcmp(code, "303") == 0) {
+        // Handle the 303 path
+        // 303 See Other
+        send_303(sock, new_path);
       } else {
         continue;
       }
@@ -58,12 +105,15 @@ void route_get_request(int sock, const char *path) {
     handle_index(sock);
   } else if (strcmp(path, "/test.html") == 0) {
     handle_test(sock);
-  } else if (strcmp(path, "/test_cgi") == 0) {
+  } else if (strcmp(path, "/test-cgi") == 0) {
     handle_test_cgi(sock);
   } else if (strcmp(path, "/moved") == 0) {
     // dummy function
     handle_index(sock);
-  } else if (strcmp(path, "/maintenance") == 0) {
+  } else if (strcmp(path, "/found") == 0) {
+    // dummy function
+    handle_index(sock);
+  } else if (strcmp(path, "/see-other") == 0) {
     // dummy function
     handle_index(sock);
   } else if (strcmp(path, "/form") == 0) {

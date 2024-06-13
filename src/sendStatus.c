@@ -157,6 +157,24 @@ void send_401(int sock) {
   }
 }
 
+void send_403(int sock) {
+  char buf[64];
+  int ret;
+
+  // 403 Forbidden
+  sprintf(buf, "HTTP/1.0 403 Forbidden\r\n\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
+  }
+}
+
 void send_404(int sock) {
   char buf[64];
   int ret;
@@ -181,6 +199,24 @@ void send_414(int sock) {
 
   // 414 Request-URI Too Long
   sprintf(buf, "HTTP/1.0 414 Request-URI Too Long\r\n\r\n");
+
+  // debug
+  printf("%s", buf);
+
+  // 送信
+  ret = send(sock, buf, strlen(buf), 0);
+  if (ret < 0) {
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
+  }
+}
+
+void send_418(int sock) {
+  char buf[64];
+  int ret;
+
+  // 418 I'm a teapot
+  sprintf(buf, "HTTP/1.0 418 I'm a teapot\r\n\r\n");
 
   // debug
   printf("%s", buf);

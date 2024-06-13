@@ -5,17 +5,122 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
+
   <body>
-    <h1>It Works!</h1>
-    <button id="ajaxButton">サーバーの時間を取得</button>
-    <div id="result"></div>
+    <main>
+      <h1>It Works!</h1>
 
-    <p>到達人数：<span id="countValue">0</span></p>
+      <article id="3xx">
+        <h2>3xxコードの確認</h2>
+        <article id="301">
+          <h3>301 Moved Permanently</h3>
+          <a href="/moved">301 Moved Permanently</a>
+        </article>
+        <article id="302">
+          <h3>302 Found</h3>
+          <a href="/found">302 Found</a>
+        </article>
+        <article id="303">
+          <h3>303 See Other</h3>
+          <a href="/see-other">303 See Other</a>
+        </article>
+      </article>
 
-    <form method="post" action="/form">
-      <input type="text" id="name" name="name" placeholder="名前" />
-      <button type="submit">送信</button>
-    </form>
+      <article id="4xx">
+        <h2>4xxコードの確認</h2>
+        <article id="403">
+          <h3>403 Forbidden</h3>
+          <a href="/forbidden">403 Forbidden</a>
+        </article>
+        <article id="404">
+          <h3>404 Not Found</h3>
+          <a href="/not-found">404 Not Found</a>
+        </article>
+        <article id="418">
+          <h3>418 I'm a teapot</h3>
+          <a href="/brew-coffee">418 I'm a teapot</a>
+        </article>
+      </article>
+
+      <article id="media-type">
+        <h2>Media Typeの確認</h2>
+        <p>以下の画像はそれぞれのMedia Typeで表示されています。</p>
+        <p>
+          画像で7種類、html、css、js、下に掲載しているmp4で11種類のメディアタイプに対応しています。
+        </p>
+        <p>
+          また、application/jsonもajaxの実装で使用。(ただし、jsonファイルには対応していません)
+        </p>
+        <article id="png">
+          <h3>image/png</h3>
+          <img src="/static/img/sample-image.png" alt="sample" />
+        </article>
+        <article id="jpeg">
+          <h3>image/jpeg</h3>
+          <img src="/static/img/sample-image.jpg" alt="sample" />
+        </article>
+        <article id="gif">
+          <h3>image/gif</h3>
+          <img src="/static/img/sample-image.gif" alt="sample" />
+        </article>
+        <article id="svg">
+          <h3>image/svg+xml</h3>
+          <img src="/static/img/sample-image.svg" alt="sample" />
+        </article>
+        <article id="bmp">
+          <h3>image/bmp</h3>
+          <img src="/static/img/sample-image.bmp" alt="sample" />
+        </article>
+        <article id="webp">
+          <h3>image/webp</h3>
+          <img src="/static/img/sample-image.webp" alt="sample" />
+        </article>
+        <article id="avif">
+          <h3>image/avif</h3>
+          <img src="/static/img/sample-image.avif" alt="sample" />
+        </article>
+      </article>
+
+      <article id="html5-video">
+        <h2>HTML5 Videoの確認</h2>
+        <article id="mp4">
+          <h3>video/mp4</h3>
+          <video controls>
+            <source src="/static/video/sample-video.mp4" type="video/mp4" />
+          </video>
+        </article>
+      </article>
+
+      <article id="ajax">
+        <h2>Ajaxの確認</h2>
+        <p>
+          以下のボタンをクリックすると非同期通信を行いxmlHttpRequestでjsonを取得してjavascriptでレンダリングしています。
+        </p>
+        <p>countはdocumentが読み込まれた時にxhrを行い0を取得するのみです。</p>
+        <button id="ajaxButton">サーバーの時間を取得</button>
+        <div id="result"></div>
+
+        <p>count：<span id="countValue">0</span></p>
+      </article>
+
+      <article id="form">
+        <h2>Postの確認</h2>
+        <p>
+          以下のフォームに名前を入力して送信ボタンを押すとPOSTリクエストを送信します。
+        </p>
+        <p>送信すると別ページにリダイレクトされます。</p>
+        <form method="post" action="/form">
+          <input type="text" id="name" name="name" placeholder="名前" />
+          <button type="submit">送信</button>
+        </form>
+      </article>
+
+      <article id="cgi">
+        <h2>CGIの確認</h2>
+        <p>以下のリンク先ページはcgiで動的に生成されています。</p>
+        <a href="/test-cgi">CGIの確認</a>
+      </article>
+    </main>
 
     <script src="/static/js/main.js"></script>
   </body>
