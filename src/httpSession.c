@@ -23,7 +23,7 @@ int http_session(int sock) {
     send_500(sock);
     return -1;
   }
-  strlcpy(buf_copy, buf, recv_size + 1);
+  strncpy(buf_copy, buf, recv_size + 1);
 
   // 改行までの情報を取得
   token = strtok_r(buf_copy, "\r\n", &saveptr);
