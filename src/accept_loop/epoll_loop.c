@@ -33,27 +33,58 @@ void epoll_loop(int sock_listen) {
         socklen_t fromlen = sizeof(from);
         int sock_client =
             accept(sock_listen, (struct sockaddr *)&from, &fromlen);
-        if (sock_client == -1) {
+        if (sock_client < 0) {
           perror("accept");
           continue;
         }
 
-        ev.events = EPOLLIN;
-        ev.data.fd = sock_client;
-        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_client, &ev) == -1) {
-          perror("epoll_ctl: sock_client");
+        info_type *info = (info_type *)malloc(sizeof(info_type));
+        if (info == NULL) {
+          perror("malloc");
           close(sock_client);
           continue;
         }
+        info->body_size = 0;
+        strcpy(info->body, "");
+
+        set_nonblocking(sock_client);
+
+        client_info *client = (client_info *)malloc(sizeof(client_info));
+        if (client == NULL) {
+          perror("malloc");
+          close(sock_client);
+          free(info);
+          continue;
+        }
+        client->sock_fd = sock_client;
+        client->info = *info;
+
+        ev.events = EPOLLIN;
+        ev.data.ptr = client;
+        printf("sock_client: %d\n", sock_client);
+        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_client, &ev) == -1) {
+          perror("epoll_ctl: sock_client");
+          close(sock_client);
+          free(info);
+          continue;
+        }
       } else {
-        int client_socket = events[i].data.fd;
-        info_type info = {0};
-        http_session(client_socket, &info);
+        client_info *client = (client_info *)events[i].data.ptr;
+        int sock_client = client->sock_fd;
+        info_type *info = &client->info;
 
-        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
+        printf("sock_client: %d\n", sock_client);
 
-        shutdown(client_socket, SHUT_RDWR);
-        close(client_socket);
+        int ret = http_session(sock_client, info);
+
+        if (ret == -1 || ret == EXIT_SUCCESS) {
+          epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);
+
+          shutdown(sock_client, SHUT_RDWR);
+          close(sock_client);
+
+          free(client);
+        }
       }
     }
   }
