@@ -15,14 +15,10 @@ void default_loop(int sock_listen) {
 
     sock_client = accept(sock_listen, &addr, (socklen_t *)&len);
     while (1) {
-      printf("sock_client: %d\n", sock_client);
-      printf("1: info->body: %s\n", info.body);
       ret = http_session(sock_client, &info);
-      printf("ret: %d\n", ret);
       if (ret == -1 || ret == EXIT_SUCCESS) {
         break;
       }
-      printf("info->body: %s\n", info.body);
     }
 
     shutdown(sock_client, SHUT_RDWR);

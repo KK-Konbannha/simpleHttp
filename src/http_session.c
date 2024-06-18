@@ -6,7 +6,7 @@
 
 int analyze_request(char *request_token, info_type *info,
                     return_info_t *return_info) {
-  int recv_size = 0, len = 0, token_len = 0, remaining_size = 0;
+  int len = 0, token_len = 0, remaining_size = 0, recv_size = info->body_size;
   char *token = NULL, *saveptr = NULL, *remaining_request_token = NULL;
 
   // strtok_rで使用するためのコピーを作成
@@ -27,9 +27,12 @@ int analyze_request(char *request_token, info_type *info,
   }
   token_len = strlen(token);
   // \r\nがない場合(\nだけの場合もある)
-  if (request_token[token_len] != '\r' ||
-      request_token[token_len + 1] != '\n') {
+  if ((request_token[token_len] != '\r' ||
+       request_token[token_len + 1] != '\n') &&
+      (request_token[token_len] != '\n')) {
     printf("token is invalid\n");
+    printf("token is %s\n", token);
+    printf("request_token is %s\n", request_token);
     return_info->code = 400;
     free(request_token_copy);
     return EXIT_FAILURE;
@@ -38,7 +41,7 @@ int analyze_request(char *request_token, info_type *info,
   // リクエスト部分を解析
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
   len = parse_request(token, info);
-  if (len == 0) {
+  if (len == -1) {
     printf("parse request failed\n");
     return_info->code = 400;
     free(request_token_copy);
@@ -98,24 +101,20 @@ int http_session(int sock, info_type *info) {
   char buf[8192] = "";
   return_info_t return_info = {0};
 
-  printf("2: info->body: %s\n", info->body);
-
   // bufにinfo->bodyの内容をコピー
-  strncpy(buf, info->body, recv_size);
+  strcpy(buf, info->body);
 
   // recvでデータを受信
-  int new_recv_size = recv(sock, buf + recv_size, sizeof(buf) - recv_size, 0);
-  if (new_recv_size <= 0) {
+  int len = recv(sock, buf + recv_size, 8192 - recv_size, 0);
+  if (len <= 0) {
     perror("recv");
     return -1;
   }
-  recv_size += new_recv_size;
-  buf[recv_size] = '\0'; // 文字列の終端を追加
-
-  printf("--buf\n%s\n\n", buf);
+  recv_size += len;
+  info->body_size = recv_size;
 
   // info->bodyを更新
-  strncpy(info->body, buf, recv_size);
+  strcpy(info->body, buf);
 
   if (strstr(buf, "\r\n\r\n") == NULL) {
     printf("can't find \\r\\n\\r\\n\n");

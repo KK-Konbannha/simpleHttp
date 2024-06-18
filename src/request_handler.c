@@ -44,7 +44,7 @@ int accept_get(char *buf, int remaining_size, info_type *info,
        token = strtok_r(NULL, "\r\n", &saveptr)) {
     printf("token: %s\n", token);
     let = parse_header(token, info);
-    if (let != 1) {
+    if (let != EXIT_SUCCESS) {
       printf("parse_header failed\n");
       return_info->code = 400;
       free(buf_copy);
@@ -195,14 +195,14 @@ int parse_header(char *field, info_type *info) {
   char *field_copy = (char *)malloc(strlen(field) + 1);
   if (field_copy == NULL) {
     perror("malloc");
-    return 0;
+    return EXIT_FAILURE;
   }
   strcpy(field_copy, field);
 
   token = strtok_r(field_copy, ":", &saveptr);
   if (token == NULL) {
     free(field_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   key = token;
@@ -217,7 +217,7 @@ int parse_header(char *field, info_type *info) {
     printf("content-length: %d\n", info->content_length);
   }
 
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 int parse_request(char *status, info_type *pinfo) {
@@ -227,27 +227,27 @@ int parse_request(char *status, info_type *pinfo) {
   char *status_copy = (char *)malloc(strlen(status) + 1);
   if (status_copy == NULL) {
     perror("malloc");
-    return 0;
+    return -1;
   }
   strcpy(status_copy, status);
 
   token = strtok_r(status_copy, " ", &saveptr);
   if (token == NULL) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   method = token;
   if (strlen(method) > 7) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
   printf("method: %s\n", method);
 
   token = strtok_r(NULL, " ", &saveptr);
   if (token == NULL || token[0] != '/' || strlen(token) > 255) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   path = token;
@@ -261,7 +261,7 @@ int parse_request(char *status, info_type *pinfo) {
   if (strlen(version) <= 0 || strlen(version) > 9 ||
       (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")) != 0) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   printf("version: %s\n", version);
@@ -270,5 +270,5 @@ int parse_request(char *status, info_type *pinfo) {
   strcpy(pinfo->path, path);
   strcpy(pinfo->version, version);
 
-  return 1;
+  return EXIT_SUCCESS;
 }
