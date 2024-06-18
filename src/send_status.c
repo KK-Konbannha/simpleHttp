@@ -1,5 +1,50 @@
 #include "../include/send_status.h"
 
+void send_status(int sock, char *location, return_info_t *info) {
+  switch (info->code) {
+  case 200:
+    send_200(sock, info);
+    break;
+  case 301:
+    send_301(sock, location);
+    break;
+  case 302:
+    send_302(sock, location);
+    break;
+  case 303:
+    send_303(sock, location);
+    break;
+  case 400:
+    send_400(sock);
+    break;
+  case 401:
+    send_401(sock);
+    break;
+  case 403:
+    send_403(sock);
+    break;
+  case 404:
+    send_404(sock);
+    break;
+  case 414:
+    send_414(sock);
+    break;
+  case 418:
+    send_418(sock);
+    break;
+  case 500:
+    send_500(sock);
+    break;
+  case 501:
+    send_501(sock);
+    break;
+  default:
+    break;
+  }
+
+  return;
+}
+
 /*
  * 200番台
  */

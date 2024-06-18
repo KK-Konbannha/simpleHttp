@@ -6,7 +6,9 @@ void *thread_func(void *arg) {
 
   pthread_detach(pthread_self());
 
-  http_session(sock_client);
+  info_type info = {0};
+
+  http_session(sock_client, &info);
 
   shutdown(sock_client, SHUT_RDWR);
   close(sock_client);

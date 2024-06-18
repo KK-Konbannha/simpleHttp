@@ -47,7 +47,8 @@ void epoll_loop(int sock_listen) {
         }
       } else {
         int client_socket = events[i].data.fd;
-        http_session(client_socket);
+        info_type info = {0};
+        http_session(client_socket, &info);
 
         epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
 

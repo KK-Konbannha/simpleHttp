@@ -1,5 +1,6 @@
 #include "../../include/accept_loop/select_loop.h"
 #include "../../include/http_session.h"
+#include "../../include/lib.h"
 
 void select_loop(int sock_listen) {
   int child_num = 0;
@@ -70,7 +71,9 @@ void select_loop(int sock_listen) {
     for (int i = 0; i < child_num; i++) {
       if (child_sock[i] != -1 && FD_ISSET(child_sock[i], &ready)) {
         printf("child_sock[%d] is ready\n", i);
-        http_session(child_sock[i]);
+
+        info_type info;
+        http_session(child_sock[i], &info);
 
         shutdown(child_sock[i], SHUT_RDWR);
         close(child_sock[i]);
