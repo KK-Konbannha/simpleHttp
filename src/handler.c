@@ -1,6 +1,5 @@
-#include "../include/handlers.h"
-#include "../include/exp1.h"
-#include "../include/sendStatus.h"
+#include "../include/handler.h"
+#include "../include/send_status.h"
 
 void handle_index(int sock) {
   return_info_t info;

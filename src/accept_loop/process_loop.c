@@ -1,0 +1,38 @@
+#include "../../include/accept_loop/process_loop.h"
+#include "../../include/http_session.h"
+
+void process_loop(int sock_listen) {
+  struct sigaction sa;
+  sigaction(SIGCHLD, NULL, &sa);
+  sa.sa_flags = SA_NODEFER;
+  sigaction(SIGCHLD, &sa, NULL);
+
+  while (1) {
+    struct sockaddr addr;
+    int sock_client;
+    int len;
+
+    sock_client = accept(sock_listen, &addr, (socklen_t *)&len);
+    if (sock_client == -1) {
+      if (errno != EINTR) {
+        perror("accept");
+      }
+    } else {
+      pid_t pid = fork();
+      if (pid == -1) {
+        perror("fork");
+      } else if (pid == 0) {
+        http_session(sock_client);
+        shutdown(sock_client, SHUT_RDWR);
+        close(sock_client);
+        _exit(0);
+      } else {
+        close(sock_client);
+      }
+
+      while (waitpid(-1, NULL, WNOHANG) > 0) {
+        ;
+      }
+    }
+  }
+}

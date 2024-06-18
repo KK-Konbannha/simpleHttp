@@ -1,4 +1,9 @@
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 
 #ifndef EXP1LIB_H
 #define EXP1LIB_H
@@ -21,8 +26,8 @@ typedef struct {
   char *name;
 } return_info_t;
 
-int exp1_tcp_listen(int port);
-int http_session(int sock);
+int tcp_listen(int port);
+void set_nonblocking(int sock);
 void get_file_info(FILE *fp, return_info_t *info);
 
 #endif

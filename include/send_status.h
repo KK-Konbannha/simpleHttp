@@ -1,5 +1,6 @@
-#include "../include/exp1lib.h"
+#include "lib.h"
 #include <stdio.h>
+#include <unistd.h>
 
 #ifndef SENDSTATUS_H
 #define SENDSTATUS_H
