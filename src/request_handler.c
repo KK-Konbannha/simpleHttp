@@ -1,48 +1,29 @@
 #include "../include/request_handler.h"
-#include "../include/router.h"
 #include "../include/send_status.h"
 
-void accept_get(int sock, char *buf, int remaining_size, info_type *info,
-                int is_head) {
+int accept_get(char *buf, int remaining_size, info_type *info,
+               return_info_t *return_info, int is_head) {
   int let = 0, recv_size = 0;
   int find_end = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
 
-  while (1) {
-    printf("--buf\n%s\n\n", buf);
-    printf("recv_size: %d\n", recv_size);
-    printf("remaining_size: %d\n", remaining_size);
+  printf("--buf\n%s\n\n", buf);
+  printf("recv_size: %d\n", recv_size);
+  printf("remaining_size: %d\n", remaining_size);
 
-    // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
-    start = buf;
-    while ((end = strstr(start, "\r\n")) != NULL) {
-      if (end == start) {
-        find_end = 1;
-        break;
-      }
-      start = end + 2;
-    }
-
-    if (find_end == 1) {
+  // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
+  start = buf;
+  while ((end = strstr(start, "\r\n")) != NULL) {
+    if (end == start) {
+      find_end = 1;
       break;
     }
+    start = end + 2;
+  }
 
-    // バッファがいっぱいになった場合
-    if (remaining_size <= 0) {
-      printf("remaining_size is 0\n");
-      send_400(sock);
-      return;
-    }
-
-    let = recv(sock, buf + recv_size, remaining_size, 0);
-    if (let <= 0) {
-      shutdown(sock, SHUT_RDWR);
-      close(sock);
-      return;
-    }
-
-    recv_size += let;
-    remaining_size -= let;
+  if (find_end != 1) {
+    return_info->code = 400;
+    return EXIT_FAILURE;
   }
 
   printf("--buf\n%s\n\n", buf);
@@ -51,8 +32,8 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   char *buf_copy = (char *)malloc(strlen(buf) + 1);
   if (buf_copy == NULL) {
     perror("malloc");
-    send_500(sock);
-    return;
+    return_info->code = 500;
+    return EXIT_FAILURE;
   }
   strncpy(buf_copy, buf, strlen(buf) + 1);
 
@@ -63,11 +44,11 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
        token = strtok_r(NULL, "\r\n", &saveptr)) {
     printf("token: %s\n", token);
     let = parse_header(token, info);
-    if (let != 1) {
+    if (let != EXIT_SUCCESS) {
       printf("parse_header failed\n");
-      send_400(sock);
+      return_info->code = 400;
       free(buf_copy);
-      return;
+      return EXIT_FAILURE;
     }
   }
 
@@ -80,67 +61,47 @@ void accept_get(int sock, char *buf, int remaining_size, info_type *info,
   //  return;
   // }
 
-  // ルーティング
-  route_get_request(sock, info->path);
-
-  return;
+  return EXIT_SUCCESS;
 }
 
-void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
+int accept_post(char *buf, int remaining_size, info_type *info,
+                return_info_t *return_info) {
   int let = 0, recv_size = 0;
   int find_end = 0, is_remaining_body = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL, *body = NULL;
 
-  while (1) {
-    printf("--buf\n%s\n\n", buf);
-    printf("recv_size: %d\n", recv_size);
-    printf("remaining_size: %d\n", remaining_size);
+  printf("--buf\n%s\n\n", buf);
+  printf("recv_size: %d\n", recv_size);
+  printf("remaining_size: %d\n", remaining_size);
 
-    // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
-    start = buf;
-    while ((end = strstr(start, "\r\n")) != NULL) {
-      if (end == start) {
-        find_end = 1;
-        break;
-      }
-      start = end + 2;
-    }
-
-    if (find_end == 1) {
+  // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
+  start = buf;
+  while ((end = strstr(start, "\r\n")) != NULL) {
+    if (end == start) {
+      find_end = 1;
       break;
     }
+    start = end + 2;
+  }
 
-    // バッファがいっぱいになった場合
-    if (remaining_size <= 0) {
-      printf("remaining_size is 0\n");
-      send_400(sock);
-      return;
-    }
-
-    let = recv(sock, buf + recv_size, remaining_size, 0);
-    if (let <= 0) {
-      shutdown(sock, SHUT_RDWR);
-      close(sock);
-      return;
-    }
-
-    recv_size += let;
-    remaining_size -= let;
+  if (find_end != 1) {
+    return_info->code = 400;
+    return EXIT_FAILURE;
   }
 
   printf("--buf\n%s\n\n", buf);
 
   if (strcmp(buf, "\r\n") == 0) {
-    send_400(sock);
-    return;
+    return_info->code = 400;
+    return EXIT_FAILURE;
   }
 
   // strtok_rで使用するためのコピーを作成
   char *buf_copy = (char *)malloc(strlen(buf) + 1);
   if (buf_copy == NULL) {
     perror("malloc");
-    send_500(sock);
-    return;
+    return_info->code = 500;
+    return EXIT_FAILURE;
   }
   strncpy(buf_copy, buf, strlen(buf) + 1);
 
@@ -172,9 +133,9 @@ void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
     let = parse_header(token, info);
     if (let != 1) {
       printf("parse_header failed\n");
-      send_400(sock);
       free(buf_copy);
-      return;
+      return_info->code = 400;
+      return EXIT_FAILURE;
     }
   }
 
@@ -189,8 +150,9 @@ void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
   // なければ400を返す
   if (info->content_length == 0) {
     printf("content-length is 0\n");
-    send_400(sock);
-    return;
+    return_info->code = 400;
+    free(buf_copy);
+    return EXIT_FAILURE;
   }
 
   // ボディ部分を取得
@@ -201,10 +163,10 @@ void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
     if (token == NULL) {
       printf("token is NULL\n");
 
-      send_500(sock);
       free(body);
       free(buf_copy);
-      return;
+      return_info->code = 500;
+      return EXIT_FAILURE;
     }
 
     strcpy(body, token);
@@ -213,30 +175,18 @@ void accept_post(int sock, char *buf, int remaining_size, info_type *info) {
 
   free(buf_copy);
 
-  while (1) {
-    if (recv_size >= info->content_length) {
-      break;
-    }
-
-    let = recv(sock, body + recv_size, info->content_length - recv_size, 0);
-    if (let <= 0) {
-      shutdown(sock, SHUT_RDWR);
-      close(sock);
-      return;
-    }
-
-    recv_size += let;
+  if (recv_size < info->content_length) {
+    return EXIT_FAILURE;
   }
 
   body[info->content_length] = '\0';
   printf("body: %s\n\n", body);
 
-  // ルーティング
-  route_post_request(sock, info->path, body);
+  strncpy(info->body, body, info->content_length);
 
   free(body);
 
-  return;
+  return EXIT_SUCCESS;
 }
 
 int parse_header(char *field, info_type *info) {
@@ -245,14 +195,14 @@ int parse_header(char *field, info_type *info) {
   char *field_copy = (char *)malloc(strlen(field) + 1);
   if (field_copy == NULL) {
     perror("malloc");
-    return 0;
+    return EXIT_FAILURE;
   }
   strcpy(field_copy, field);
 
   token = strtok_r(field_copy, ":", &saveptr);
   if (token == NULL) {
     free(field_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   key = token;
@@ -267,7 +217,7 @@ int parse_header(char *field, info_type *info) {
     printf("content-length: %d\n", info->content_length);
   }
 
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 int parse_request(char *status, info_type *pinfo) {
@@ -277,27 +227,27 @@ int parse_request(char *status, info_type *pinfo) {
   char *status_copy = (char *)malloc(strlen(status) + 1);
   if (status_copy == NULL) {
     perror("malloc");
-    return 0;
+    return -1;
   }
   strcpy(status_copy, status);
 
   token = strtok_r(status_copy, " ", &saveptr);
   if (token == NULL) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   method = token;
   if (strlen(method) > 7) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
   printf("method: %s\n", method);
 
   token = strtok_r(NULL, " ", &saveptr);
   if (token == NULL || token[0] != '/' || strlen(token) > 255) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   path = token;
@@ -311,7 +261,7 @@ int parse_request(char *status, info_type *pinfo) {
   if (strlen(version) <= 0 || strlen(version) > 9 ||
       (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")) != 0) {
     free(status_copy);
-    return 0;
+    return EXIT_FAILURE;
   }
 
   printf("version: %s\n", version);
@@ -320,5 +270,5 @@ int parse_request(char *status, info_type *pinfo) {
   strcpy(pinfo->path, path);
   strcpy(pinfo->version, version);
 
-  return 1;
+  return EXIT_SUCCESS;
 }

@@ -5,6 +5,8 @@
 #ifndef SENDSTATUS_H
 #define SENDSTATUS_H
 
+void send_status(int sock, char *location, return_info_t *info);
+
 void send_200(int sock, return_info_t *info);
 
 void send_301(int sock, char *location);

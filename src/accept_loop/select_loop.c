@@ -1,9 +1,11 @@
 #include "../../include/accept_loop/select_loop.h"
 #include "../../include/http_session.h"
+#include "../../include/lib.h"
 
 void select_loop(int sock_listen) {
   int child_num = 0;
   int child_sock[MAX_CHILD_NUM];
+  info_type *child_info[MAX_CHILD_NUM];
   memset(child_sock, 0, sizeof(child_sock));
 
   while (1) {
@@ -62,7 +64,11 @@ void select_loop(int sock_listen) {
         }
 
         if (pos != -1) {
+          set_nonblocking(sock_client);
           child_sock[pos] = sock_client;
+          child_info[pos] = (info_type *)malloc(sizeof(info_type));
+          child_info[pos]->body_size = 0;
+          strcpy(child_info[pos]->body, "");
         }
       }
     }
@@ -70,12 +76,14 @@ void select_loop(int sock_listen) {
     for (int i = 0; i < child_num; i++) {
       if (child_sock[i] != -1 && FD_ISSET(child_sock[i], &ready)) {
         printf("child_sock[%d] is ready\n", i);
-        http_session(child_sock[i]);
 
-        shutdown(child_sock[i], SHUT_RDWR);
-        close(child_sock[i]);
+        int ret = http_session(child_sock[i], child_info[i]);
+        if (ret == -1 || ret == EXIT_SUCCESS) {
+          shutdown(child_sock[i], SHUT_RDWR);
+          close(child_sock[i]);
 
-        child_sock[i] = -1;
+          child_sock[i] = -1;
+        }
       }
     }
   }

@@ -2,6 +2,20 @@
 #include "../include/handler.h"
 #include "../include/send_status.h"
 
+void route_request(int sock, const char *path, const char *method, char *body) {
+  if (strcmp(method, "GET") == 0) {
+    route_get_request(sock, path);
+  } else if (strcmp(method, "POST") == 0) {
+    route_post_request(sock, path, body);
+  } else {
+    // Handle the 501 path
+    // 501 Not Implemented
+    send_501(sock);
+  }
+
+  return;
+}
+
 void route_get_request(int sock, const char *path) {
   if (strstr(path, "..") != NULL || strstr(path, "//") != NULL ||
       strstr(path, "~") != NULL) {

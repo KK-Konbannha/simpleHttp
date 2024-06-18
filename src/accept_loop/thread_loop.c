@@ -6,7 +6,16 @@ void *thread_func(void *arg) {
 
   pthread_detach(pthread_self());
 
-  http_session(sock_client);
+  info_type info = {0};
+  strcpy(info.body, "");
+  info.body_size = 0;
+
+  while (1) {
+    int ret = http_session(sock_client, &info);
+    if (ret == -1 || ret == EXIT_SUCCESS) {
+      break;
+    }
+  }
 
   shutdown(sock_client, SHUT_RDWR);
   close(sock_client);

@@ -1,5 +1,6 @@
 #include "../../include/accept_loop/process_loop.h"
 #include "../../include/http_session.h"
+#include "../../include/lib.h"
 
 void process_loop(int sock_listen) {
   struct sigaction sa;
@@ -22,7 +23,16 @@ void process_loop(int sock_listen) {
       if (pid == -1) {
         perror("fork");
       } else if (pid == 0) {
-        http_session(sock_client);
+        info_type info = {0};
+        strcpy(info.body, "");
+        info.body_size = 0;
+
+        while (1) {
+          int ret = http_session(sock_client, &info);
+          if (ret == -1 || ret == EXIT_SUCCESS) {
+            break;
+          }
+        }
         shutdown(sock_client, SHUT_RDWR);
         close(sock_client);
         _exit(0);

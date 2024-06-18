@@ -16,10 +16,12 @@ typedef struct {
   char auth[1024];
   int code;
   int content_length;
-  char *body;
+  char body[8192];
+  int body_size;
 } info_type;
 
 typedef struct {
+  int code;
   char type[128];
   int size;
   char *body;
