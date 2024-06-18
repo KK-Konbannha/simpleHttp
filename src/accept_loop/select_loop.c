@@ -5,6 +5,7 @@
 void select_loop(int sock_listen) {
   int child_num = 0;
   int child_sock[MAX_CHILD_NUM];
+  info_type *child_info[MAX_CHILD_NUM];
   memset(child_sock, 0, sizeof(child_sock));
 
   while (1) {
@@ -64,6 +65,9 @@ void select_loop(int sock_listen) {
 
         if (pos != -1) {
           child_sock[pos] = sock_client;
+          child_info[pos] = (info_type *)malloc(sizeof(info_type));
+          child_info[pos]->body_size = 0;
+          strcpy(child_info[pos]->body, "");
         }
       }
     }
@@ -72,13 +76,13 @@ void select_loop(int sock_listen) {
       if (child_sock[i] != -1 && FD_ISSET(child_sock[i], &ready)) {
         printf("child_sock[%d] is ready\n", i);
 
-        info_type info;
-        http_session(child_sock[i], &info);
+        int ret = http_session(child_sock[i], child_info[i]);
+        if (ret == -1 || ret == EXIT_SUCCESS) {
+          shutdown(child_sock[i], SHUT_RDWR);
+          close(child_sock[i]);
 
-        shutdown(child_sock[i], SHUT_RDWR);
-        close(child_sock[i]);
-
-        child_sock[i] = -1;
+          child_sock[i] = -1;
+        }
       }
     }
   }
