@@ -1,7 +1,6 @@
 #include "../include/router.h"
-#include "../include/exp1.h"
-#include "../include/handlers.h"
-#include "../include/sendStatus.h"
+#include "../include/handler.h"
+#include "../include/send_status.h"
 
 void route_get_request(int sock, const char *path) {
   if (strstr(path, "..") != NULL || strstr(path, "//") != NULL ||

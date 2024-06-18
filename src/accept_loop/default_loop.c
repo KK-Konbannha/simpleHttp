@@ -1,8 +1,7 @@
-#include "../include/acceptLoop.h"
-#include "../include/exp1.h"
-#include "../include/httpSession.h"
+#include "../../include/accept_loop/default_loop.h"
+#include "../../include/http_session.h"
 
-void accept_loop(int sock_listen) {
+void default_loop(int sock_listen) {
   while (1) {
     struct sockaddr addr;
     int sock_client;

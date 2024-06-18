@@ -1,20 +1,64 @@
-#include "../include/acceptLoop.h"
-#include "../include/exp1.h"
-#include "../include/requestHandler.h"
+#include "../include/accept_loop/default_loop.h"
+#include "../include/accept_loop/epoll_loop.h"
+#include "../include/accept_loop/process_loop.h"
+#include "../include/accept_loop/select_loop.h"
+#include "../include/accept_loop/thread_loop.h"
+#include "../include/request_handler.h"
+
+#define DEFAULT_LOOP 0
+#define SELECT_LOOP 1
+#define THREAD_LOOP 2
+#define PROCESS_LOOP 3
+#define EPOLL_LOOP 4
 
 int http_session(int sock);
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+  if (argc != 3) {
+    fprintf(stderr, "Usage: %s <mode> <port>\n", argv[0]);
+    fprintf(stderr, "mode: 0(default) 1(select)"
+                    " 2(thread) 3(process) 4(epoll)\n");
     exit(1);
   }
-  int sock_listen;
-  int port = atoi(argv[1]);
+  int sock_listen = 0;
+  int mode = atoi(argv[1]);
+  if (mode < DEFAULT_LOOP || mode > EPOLL_LOOP) {
+    fprintf(stderr, "Invalid mode\n");
+    exit(1);
+  }
 
-  sock_listen = exp1_tcp_listen(port);
+  int port = atoi(argv[2]);
+  if (port <= 0 || port > 65535) {
+    fprintf(stderr, "Invalid port number\n");
+    exit(1);
+  }
 
-  accept_loop(sock_listen);
+  sock_listen = tcp_listen(port);
+  if (sock_listen < 0) {
+    fprintf(stderr, "tcp_listen error\n");
+    exit(1);
+  }
+
+  switch (mode) {
+  case DEFAULT_LOOP:
+    default_loop(sock_listen);
+    break;
+  case SELECT_LOOP:
+    select_loop(sock_listen);
+    break;
+  case THREAD_LOOP:
+    thread_loop(sock_listen);
+    break;
+  case PROCESS_LOOP:
+    process_loop(sock_listen);
+    break;
+  case EPOLL_LOOP:
+    epoll_loop(sock_listen);
+    break;
+  default:
+    fprintf(stderr, "Invalid mode\n");
+    exit(1);
+  }
 
   close(sock_listen);
 
