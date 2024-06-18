@@ -64,6 +64,7 @@ void select_loop(int sock_listen) {
         }
 
         if (pos != -1) {
+          set_nonblocking(sock_client);
           child_sock[pos] = sock_client;
           child_info[pos] = (info_type *)malloc(sizeof(info_type));
           child_info[pos]->body_size = 0;
