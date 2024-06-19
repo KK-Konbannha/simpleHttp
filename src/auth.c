@@ -58,10 +58,6 @@ int check_auth(const char *auth, int auth_kind) {
   char user[128];
   char pass[128];
 
-  if (strlen(auth) == 0) {
-    return -1;
-  }
-
   if (auth_kind == 0) {
     return 0;
   } else if (auth_kind == 1) {

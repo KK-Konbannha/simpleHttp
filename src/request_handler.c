@@ -41,10 +41,11 @@ int accept_get(char *buf, int remaining_size, info_type *info,
   // ヘッダーがあるなら解釈する
   // \r\nで残りを分割してparse_headerで解釈
   // (なければ初めから終了条件が満たされる)
+  int is_find_keep_alive = 0;
   for (token = strtok_r(buf_copy, "\r\n", &saveptr); token;
        token = strtok_r(NULL, "\r\n", &saveptr)) {
     printf("token: %s\n", token);
-    let = parse_header(token, info);
+    let = parse_header(token, info, &is_find_keep_alive);
     if (let != EXIT_SUCCESS) {
       printf("parse_header failed\n");
       return_info->code = 400;
@@ -52,6 +53,11 @@ int accept_get(char *buf, int remaining_size, info_type *info,
       return EXIT_FAILURE;
     }
   }
+
+  if (is_find_keep_alive == 0) {
+    info->keep_alive = 0;
+  }
+  printf("keep-alive: %d\n", info->keep_alive);
 
   free(buf_copy);
 
@@ -111,6 +117,7 @@ int accept_post(char *buf, int remaining_size, info_type *info,
   // ヘッダーがあるなら解釈する
   // \r\nで残りを分割してparse_headerで解釈
   // (なければ初めから終了条件が満たされる)
+  int is_find_keep_alive = 0;
   for (token = strtok_r(buf_copy, "\r\n", &saveptr); token;
        token = strtok_r(NULL, "\r\n", &saveptr)) {
     size_t token_offset = token - buf_copy;
@@ -130,14 +137,17 @@ int accept_post(char *buf, int remaining_size, info_type *info,
       break;
     }
 
-    printf("token: %s\n", token);
-    let = parse_header(token, info);
+    let = parse_header(token, info, &is_find_keep_alive);
     if (let != 1) {
       printf("parse_header failed\n");
       free(buf_copy);
       return_info->code = 400;
       return EXIT_FAILURE;
     }
+  }
+
+  if (is_find_keep_alive == 0) {
+    info->keep_alive = 0;
   }
 
   if (check_auth(info->auth, auth)) {
@@ -189,7 +199,7 @@ int accept_post(char *buf, int remaining_size, info_type *info,
   return EXIT_SUCCESS;
 }
 
-int parse_header(char *field, info_type *info) {
+int parse_header(char *field, info_type *info, int *is_find_keep_alive) {
   char *key = NULL, *value = NULL, *token = NULL, *saveptr = NULL;
 
   char *field_copy = (char *)malloc(strlen(field) + 1);
@@ -215,8 +225,16 @@ int parse_header(char *field, info_type *info) {
   } else if (strcmp(key, "Content-Length") == 0) {
     info->content_length = atoi(value);
     printf("content-length: %d\n", info->content_length);
+  } else if (strcmp(key, "Connection") == 0) {
+    *is_find_keep_alive = 1;
+    if (strcmp(value, "keep-alive") == 0) {
+      info->keep_alive = 1;
+    } else {
+      info->keep_alive = 0;
+    }
   }
 
+  free(field_copy);
   return EXIT_SUCCESS;
 }
 

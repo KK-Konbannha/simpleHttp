@@ -67,8 +67,13 @@ void select_loop(int sock_listen, int auth) {
           set_nonblocking(sock_client);
           child_sock[pos] = sock_client;
           child_info[pos] = (info_type *)malloc(sizeof(info_type));
-          child_info[pos]->body_size = 0;
-          strcpy(child_info[pos]->body, "");
+          if (child_info[pos] == NULL) {
+            perror("malloc");
+            close(sock_client);
+            child_sock[pos] = -1;
+          } else {
+            init_info(child_info[pos], 1);
+          }
         }
       }
     }
@@ -78,11 +83,17 @@ void select_loop(int sock_listen, int auth) {
         printf("child_sock[%d] is ready\n", i);
 
         int ret = http_session(child_sock[i], child_info[i], auth);
-        if (ret == -1 || ret == EXIT_SUCCESS) {
+        if (ret == -1 ||
+            (ret == EXIT_SUCCESS && child_info[i]->keep_alive == 0)) {
+          printf("close child_sock[%d]\n", i);
+          printf("keep_alive: %d\n", child_info[i]->keep_alive);
           shutdown(child_sock[i], SHUT_RDWR);
           close(child_sock[i]);
 
           child_sock[i] = -1;
+        } else if (ret == EXIT_SUCCESS && child_info[i]->keep_alive == 1) {
+          printf("reuse child_sock[%d]\n", i);
+          init_info(child_info[i], 1);
         }
       }
     }

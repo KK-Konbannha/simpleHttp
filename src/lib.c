@@ -33,6 +33,19 @@ int tcp_listen(int port) {
   return server_socket;
 }
 
+void init_info(info_type *info, int keep_alive) {
+  strcpy(info->method, "");
+  strcpy(info->path, "");
+  strcpy(info->version, "");
+  strcpy(info->type, "");
+  strcpy(info->auth, "");
+  info->code = 0;
+  info->content_length = 0;
+  strcpy(info->body, "");
+  info->body_size = 0;
+  info->keep_alive = keep_alive;
+}
+
 void set_nonblocking(int sock) {
   int opts = fcntl(sock, F_GETFL);
   if (opts < 0) {

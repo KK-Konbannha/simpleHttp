@@ -44,8 +44,7 @@ void epoll_loop(int sock_listen, int auth) {
           close(sock_client);
           continue;
         }
-        info->body_size = 0;
-        strcpy(info->body, "");
+        init_info(info, 1);
 
         set_nonblocking(sock_client);
 
@@ -77,13 +76,15 @@ void epoll_loop(int sock_listen, int auth) {
 
         int ret = http_session(sock_client, info, auth);
 
-        if (ret == -1 || ret == EXIT_SUCCESS) {
+        if (ret == -1 || (ret == EXIT_SUCCESS && info->keep_alive == 0)) {
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);
 
           shutdown(sock_client, SHUT_RDWR);
           close(sock_client);
 
           free(client);
+        } else if (ret == EXIT_SUCCESS && info->keep_alive == 1) {
+          init_info(info, 1);
         }
       }
     }
