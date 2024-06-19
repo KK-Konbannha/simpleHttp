@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void epoll_loop(int sock_listen) {
+void epoll_loop(int sock_listen, int auth) {
   int epoll_fd = epoll_create1(0);
   if (epoll_fd == -1) {
     perror("epoll_create1");
@@ -75,7 +75,7 @@ void epoll_loop(int sock_listen) {
 
         printf("sock_client: %d\n", sock_client);
 
-        int ret = http_session(sock_client, info);
+        int ret = http_session(sock_client, info, auth);
 
         if (ret == -1 || ret == EXIT_SUCCESS) {
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);

@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void select_loop(int sock_listen) {
+void select_loop(int sock_listen, int auth) {
   int child_num = 0;
   int child_sock[MAX_CHILD_NUM];
   info_type *child_info[MAX_CHILD_NUM];
@@ -77,7 +77,7 @@ void select_loop(int sock_listen) {
       if (child_sock[i] != -1 && FD_ISSET(child_sock[i], &ready)) {
         printf("child_sock[%d] is ready\n", i);
 
-        int ret = http_session(child_sock[i], child_info[i]);
+        int ret = http_session(child_sock[i], child_info[i], auth);
         if (ret == -1 || ret == EXIT_SUCCESS) {
           shutdown(child_sock[i], SHUT_RDWR);
           close(child_sock[i]);

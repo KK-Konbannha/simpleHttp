@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void process_loop(int sock_listen) {
+void process_loop(int sock_listen, int auth) {
   struct sigaction sa;
   sigaction(SIGCHLD, NULL, &sa);
   sa.sa_flags = SA_NODEFER;
@@ -28,7 +28,7 @@ void process_loop(int sock_listen) {
         info.body_size = 0;
 
         while (1) {
-          int ret = http_session(sock_client, &info);
+          int ret = http_session(sock_client, &info, auth);
           if (ret == -1 || ret == EXIT_SUCCESS) {
             break;
           }

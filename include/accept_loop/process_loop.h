@@ -9,6 +9,6 @@
 #ifndef PROCESS_LOOP_H
 #define PROCESS_LOOP_H
 
-void process_loop(int sock_listen);
+void process_loop(int sock_listen, int auth);
 
 #endif

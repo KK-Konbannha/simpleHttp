@@ -14,10 +14,12 @@
 int http_session(int sock);
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
-    fprintf(stderr, "Usage: %s <mode> <port>\n", argv[0]);
+  if (argc < 3 || argc > 4) {
+    fprintf(stderr, "Usage: %s <mode> <port> [authentication]\n", argv[0]);
     fprintf(stderr, "mode: 0(default) 1(select)"
                     " 2(thread) 3(process) 4(epoll)\n");
+    fprintf(stderr, "port: 1-65535\n");
+    fprintf(stderr, "authentication: 0(disable) 1(basic)\n");
     exit(1);
   }
   int sock_listen = 0;
@@ -33,6 +35,15 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+  int auth = 0;
+  if (argc == 4) {
+    auth = atoi(argv[3]);
+    if (auth < 0 || auth > 1) {
+      fprintf(stderr, "Invalid authentication\n");
+      exit(1);
+    }
+  }
+
   sock_listen = tcp_listen(port);
   if (sock_listen < 0) {
     fprintf(stderr, "tcp_listen error\n");
@@ -41,19 +52,19 @@ int main(int argc, char **argv) {
 
   switch (mode) {
   case DEFAULT_LOOP:
-    default_loop(sock_listen);
+    default_loop(sock_listen, auth);
     break;
   case SELECT_LOOP:
-    select_loop(sock_listen);
+    select_loop(sock_listen, auth);
     break;
   case THREAD_LOOP:
-    thread_loop(sock_listen);
+    thread_loop(sock_listen, auth);
     break;
   case PROCESS_LOOP:
-    process_loop(sock_listen);
+    process_loop(sock_listen, auth);
     break;
   case EPOLL_LOOP:
-    epoll_loop(sock_listen);
+    epoll_loop(sock_listen, auth);
     break;
   default:
     fprintf(stderr, "Invalid mode\n");

@@ -13,7 +13,7 @@ LDFLAGS=-pthread
 OBJECTS = $(OBJ_DIR)/main.o $(OBJ_DIR)/lib.o \
 					$(OBJ_DIR)/request_handler.o $(OBJ_DIR)/http_session.o \
 					$(OBJ_DIR)/router.o $(OBJ_DIR)/handler.o \
-					$(OBJ_DIR)/send_status.o \
+					$(OBJ_DIR)/send_status.o  $(OBJ_DIR)/auth.o \
 					$(OBJ_DIR)/accept_loop/default_loop.o \
 					$(OBJ_DIR)/accept_loop/select_loop.o \
 					$(OBJ_DIR)/accept_loop/thread_loop.o \
@@ -35,6 +35,8 @@ $(OBJ_DIR)/accept_loop/%.o: $(SRC_DIR)/accept_loop/%.c
 
 clean:
 	-rm -f $(EXECUTABLE) $(OBJECTS)
+
+.PHONY: all clean
 
 # Create obj and bin directory if it does not exist
 $(shell mkdir -p $(BIN_DIR))
