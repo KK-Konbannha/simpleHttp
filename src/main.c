@@ -15,9 +15,11 @@ int http_session(int sock);
 
 int main(int argc, char **argv) {
   if (argc != 3) {
-    fprintf(stderr, "Usage: %s <mode> <port>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <mode> <port> [authentication]\n", argv[0]);
     fprintf(stderr, "mode: 0(default) 1(select)"
                     " 2(thread) 3(process) 4(epoll)\n");
+    fprintf(stderr, "port: 1-65535\n");
+    fprintf(stderr, "authentication: 0(disable) 1(basic)\n");
     exit(1);
   }
   int sock_listen = 0;
@@ -31,6 +33,15 @@ int main(int argc, char **argv) {
   if (port <= 0 || port > 65535) {
     fprintf(stderr, "Invalid port number\n");
     exit(1);
+  }
+
+  int auth = 0;
+  if (argc == 4) {
+    auth = atoi(argv[3]);
+    if (auth < 0 || auth > 1) {
+      fprintf(stderr, "Invalid authentication\n");
+      exit(1);
+    }
   }
 
   sock_listen = tcp_listen(port);

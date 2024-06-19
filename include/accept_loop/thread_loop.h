@@ -9,6 +9,6 @@
 #define THREAD_LOOP_H
 
 void *thread_func(void *arg);
-void thread_loop(int sock_listen);
+void thread_loop(int sock_listen, int auth);
 
 #endif

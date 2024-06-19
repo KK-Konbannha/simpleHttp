@@ -10,6 +10,6 @@
 
 #define MAX_CHILD_NUM 1200
 
-void select_loop(int sock_listen);
+void select_loop(int sock_listen, int auth);
 
 #endif
