@@ -14,7 +14,7 @@
 int http_session(int sock);
 
 int main(int argc, char **argv) {
-  if (argc != 3) {
+  if (argc < 3 || argc > 4) {
     fprintf(stderr, "Usage: %s <mode> <port> [authentication]\n", argv[0]);
     fprintf(stderr, "mode: 0(default) 1(select)"
                     " 2(thread) 3(process) 4(epoll)\n");

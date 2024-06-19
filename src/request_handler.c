@@ -1,4 +1,5 @@
 #include "../include/request_handler.h"
+#include "../include/auth.h"
 #include "../include/send_status.h"
 
 int accept_get(char *buf, int remaining_size, info_type *info,
@@ -54,12 +55,12 @@ int accept_get(char *buf, int remaining_size, info_type *info,
 
   free(buf_copy);
 
-  // 認証情報があるか、正しいかをチェック
-  // なければ401を返す
-  // if (check_auth(info)) {
-  //  send_401(sock);
-  //  return;
-  // }
+  int ret = check_auth(info->auth, auth);
+  if (ret != 0) {
+    return_info->code = 401;
+    return EXIT_FAILURE;
+  }
+  printf("ret: %d\n", ret);
 
   return EXIT_SUCCESS;
 }
@@ -139,12 +140,11 @@ int accept_post(char *buf, int remaining_size, info_type *info,
     }
   }
 
-  // 認証情報があるか、正しいかをチェック
-  // なければ401を返す
-  // if (check_auth(info)) {
-  // send_401(sock);
-  // return;
-  // }
+  if (check_auth(info->auth, auth)) {
+    return_info->code = 401;
+    free(buf_copy);
+    return EXIT_FAILURE;
+  }
 
   // content-lengthがあるかチェック
   // なければ400を返す
