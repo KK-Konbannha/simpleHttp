@@ -28,7 +28,7 @@ void process_loop(int sock_listen, int auth) {
         info.body_size = 0;
 
         while (1) {
-          int ret = http_session(sock_client, &info);
+          int ret = http_session(sock_client, &info, auth);
           if (ret == -1 || ret == EXIT_SUCCESS) {
             break;
           }

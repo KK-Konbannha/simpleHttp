@@ -2,7 +2,7 @@
 #include "../include/send_status.h"
 
 int accept_get(char *buf, int remaining_size, info_type *info,
-               return_info_t *return_info, int is_head) {
+               return_info_t *return_info, int is_head, int auth) {
   int let = 0, recv_size = 0;
   int find_end = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
@@ -65,7 +65,7 @@ int accept_get(char *buf, int remaining_size, info_type *info,
 }
 
 int accept_post(char *buf, int remaining_size, info_type *info,
-                return_info_t *return_info) {
+                return_info_t *return_info, int auth) {
   int let = 0, recv_size = 0;
   int find_end = 0, is_remaining_body = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL, *body = NULL;

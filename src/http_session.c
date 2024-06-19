@@ -5,7 +5,7 @@
 #include "../include/send_status.h"
 
 int analyze_request(char *request_token, info_type *info,
-                    return_info_t *return_info) {
+                    return_info_t *return_info, int auth) {
   int len = 0, token_len = 0, remaining_size = 0, recv_size = info->body_size;
   char *token = NULL, *saveptr = NULL, *remaining_request_token = NULL;
 
@@ -65,7 +65,7 @@ int analyze_request(char *request_token, info_type *info,
     printf("--request_token\n%s\n\n", request_token);
 
     int ret = accept_get(remaining_request_token, remaining_size, info,
-                         return_info, strcmp(info->method, "HEAD") == 0);
+                         return_info, strcmp(info->method, "HEAD") == 0, auth);
     if (ret == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
@@ -76,8 +76,8 @@ int analyze_request(char *request_token, info_type *info,
 
     printf("--request_token\n%s\n\n", request_token);
 
-    int ret =
-        accept_post(remaining_request_token, remaining_size, info, return_info);
+    int ret = accept_post(remaining_request_token, remaining_size, info,
+                          return_info, auth);
     if (ret == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
@@ -96,7 +96,7 @@ int analyze_request(char *request_token, info_type *info,
 
 // -1: 異常値
 // EXIT_FAILURE: 解析失敗
-int http_session(int sock, info_type *info) {
+int http_session(int sock, info_type *info, int auth) {
   int recv_size = info->body_size;
   char buf[8192] = "";
   return_info_t return_info = {0};
@@ -123,7 +123,7 @@ int http_session(int sock, info_type *info) {
 
   // リクエスト部分を解析
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
-  int ret = analyze_request(buf, info, &return_info);
+  int ret = analyze_request(buf, info, &return_info, auth);
   if (ret == EXIT_FAILURE) {
     send_status(sock, NULL, &return_info);
     return EXIT_SUCCESS;

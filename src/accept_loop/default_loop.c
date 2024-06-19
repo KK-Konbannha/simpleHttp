@@ -15,7 +15,7 @@ void default_loop(int sock_listen, int auth) {
 
     sock_client = accept(sock_listen, &addr, (socklen_t *)&len);
     while (1) {
-      ret = http_session(sock_client, &info);
+      ret = http_session(sock_client, &info, auth);
       if (ret == -1 || ret == EXIT_SUCCESS) {
         break;
       }

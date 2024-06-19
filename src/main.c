@@ -52,19 +52,19 @@ int main(int argc, char **argv) {
 
   switch (mode) {
   case DEFAULT_LOOP:
-    default_loop(sock_listen);
+    default_loop(sock_listen, auth);
     break;
   case SELECT_LOOP:
-    select_loop(sock_listen);
+    select_loop(sock_listen, auth);
     break;
   case THREAD_LOOP:
-    thread_loop(sock_listen);
+    thread_loop(sock_listen, auth);
     break;
   case PROCESS_LOOP:
-    process_loop(sock_listen);
+    process_loop(sock_listen, auth);
     break;
   case EPOLL_LOOP:
-    epoll_loop(sock_listen);
+    epoll_loop(sock_listen, auth);
     break;
   default:
     fprintf(stderr, "Invalid mode\n");
