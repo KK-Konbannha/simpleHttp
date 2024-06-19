@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void select_loop(int sock_listen) {
+void select_loop(int sock_listen, int auth) {
   int child_num = 0;
   int child_sock[MAX_CHILD_NUM];
   info_type *child_info[MAX_CHILD_NUM];

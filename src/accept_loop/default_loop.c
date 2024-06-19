@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void default_loop(int sock_listen) {
+void default_loop(int sock_listen, int auth) {
 
   while (1) {
     struct sockaddr addr;

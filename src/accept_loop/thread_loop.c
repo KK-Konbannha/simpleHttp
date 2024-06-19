@@ -25,7 +25,7 @@ void *thread_func(void *arg) {
   pthread_exit(NULL);
 }
 
-void thread_loop(int sock_listen) {
+void thread_loop(int sock_listen, int auth) {
   while (1) {
     struct sockaddr_storage from;
     socklen_t len = sizeof(from);

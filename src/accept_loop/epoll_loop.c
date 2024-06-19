@@ -2,7 +2,7 @@
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
 
-void epoll_loop(int sock_listen) {
+void epoll_loop(int sock_listen, int auth) {
   int epoll_fd = epoll_create1(0);
   if (epoll_fd == -1) {
     perror("epoll_create1");
