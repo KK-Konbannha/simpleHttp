@@ -1,8 +1,9 @@
 #include "../include/request_handler.h"
+#include "../include/auth.h"
 #include "../include/send_status.h"
 
 int accept_get(char *buf, int remaining_size, info_type *info,
-               return_info_t *return_info, int is_head) {
+               return_info_t *return_info, int is_head, int auth) {
   int let = 0, recv_size = 0;
   int find_end = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
@@ -54,18 +55,18 @@ int accept_get(char *buf, int remaining_size, info_type *info,
 
   free(buf_copy);
 
-  // 認証情報があるか、正しいかをチェック
-  // なければ401を返す
-  // if (check_auth(info)) {
-  //  send_401(sock);
-  //  return;
-  // }
+  int ret = check_auth(info->auth, auth);
+  if (ret != 0) {
+    return_info->code = 401;
+    return EXIT_FAILURE;
+  }
+  printf("ret: %d\n", ret);
 
   return EXIT_SUCCESS;
 }
 
 int accept_post(char *buf, int remaining_size, info_type *info,
-                return_info_t *return_info) {
+                return_info_t *return_info, int auth) {
   int let = 0, recv_size = 0;
   int find_end = 0, is_remaining_body = 0;
   char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL, *body = NULL;
@@ -139,12 +140,11 @@ int accept_post(char *buf, int remaining_size, info_type *info,
     }
   }
 
-  // 認証情報があるか、正しいかをチェック
-  // なければ401を返す
-  // if (check_auth(info)) {
-  // send_401(sock);
-  // return;
-  // }
+  if (check_auth(info->auth, auth)) {
+    return_info->code = 401;
+    free(buf_copy);
+    return EXIT_FAILURE;
+  }
 
   // content-lengthがあるかチェック
   // なければ400を返す

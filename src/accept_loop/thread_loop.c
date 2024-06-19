@@ -1,8 +1,9 @@
 #include "../../include/accept_loop/thread_loop.h"
 #include "../../include/http_session.h"
 
-void *thread_func(void *arg) {
-  int sock_client = *(int *)arg;
+void *thread_func(void *args) {
+  int sock_client = *(int *)args;
+  int auth = ((thread_info *)args)->auth;
 
   pthread_detach(pthread_self());
 
@@ -11,7 +12,7 @@ void *thread_func(void *arg) {
   info.body_size = 0;
 
   while (1) {
-    int ret = http_session(sock_client, &info);
+    int ret = http_session(sock_client, &info, auth);
     if (ret == -1 || ret == EXIT_SUCCESS) {
       break;
     }
@@ -20,28 +21,32 @@ void *thread_func(void *arg) {
   shutdown(sock_client, SHUT_RDWR);
   close(sock_client);
 
-  free(arg);
+  free(args);
 
   pthread_exit(NULL);
 }
 
-void thread_loop(int sock_listen) {
+void thread_loop(int sock_listen, int auth) {
   while (1) {
     struct sockaddr_storage from;
     socklen_t len = sizeof(from);
-    int *sock_client = (int *)malloc(sizeof(int));
-    *sock_client = accept(sock_listen, (struct sockaddr *)&from, &len);
-    if (*sock_client == -1) {
+    thread_info *info = (thread_info *)malloc(sizeof(thread_info));
+    if (info == NULL) {
+      perror("malloc");
+      continue;
+    }
+    info->sock_fd = accept(sock_listen, (struct sockaddr *)&from, &len);
+    if (info->sock_fd == -1) {
       if (errno != EINTR) {
         perror("accept");
       }
-      free(sock_client);
+      free(info);
     } else {
       pthread_t thread;
-      if (pthread_create(&thread, NULL, thread_func, (void *)sock_client) !=
-          0) {
+      info->auth = auth;
+      if (pthread_create(&thread, NULL, thread_func, (void *)info) != 0) {
         perror("pthread_create");
-        free(sock_client);
+        free(info);
       }
     }
   }

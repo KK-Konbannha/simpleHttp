@@ -14,6 +14,6 @@ typedef struct {
   info_type info;
 } client_info;
 
-void epoll_loop(int sock_listen);
+void epoll_loop(int sock_listen, int auth);
 
 #endif
