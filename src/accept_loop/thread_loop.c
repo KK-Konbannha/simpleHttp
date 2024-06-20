@@ -8,14 +8,18 @@ void *thread_func(void *args) {
   pthread_detach(pthread_self());
 
   info_type info;
+  return_info_t return_info;
+
   init_info(&info, 1);
+  init_return_info(&return_info);
 
   while (1) {
-    int ret = http_session(sock_client, &info, auth);
+    int ret = http_session(sock_client, &info, &return_info, auth, 0);
     if (ret == -1 || (ret == EXIT_SUCCESS && info.keep_alive == 0)) {
       break;
     } else if (ret == EXIT_SUCCESS && info.keep_alive == 1) {
       init_info(&info, 1);
+      init_return_info(&return_info);
     }
   }
 

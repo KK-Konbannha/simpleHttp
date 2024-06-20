@@ -14,7 +14,6 @@ typedef struct {
   char version[10];
   char type[128];
   char auth[1024];
-  int code;
   int content_length;
   int keep_alive;
   char body[8192];
@@ -27,10 +26,12 @@ typedef struct {
   int size;
   char *body;
   char *name;
+  char new_path[256];
 } return_info_t;
 
 int tcp_listen(int port);
 void init_info(info_type *info, int keep_alive);
+void init_return_info(return_info_t *return_info);
 void set_nonblocking(int sock);
 void get_file_info(FILE *fp, return_info_t *info);
 

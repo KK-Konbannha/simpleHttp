@@ -39,11 +39,19 @@ void init_info(info_type *info, int keep_alive) {
   strcpy(info->version, "");
   strcpy(info->type, "");
   strcpy(info->auth, "");
-  info->code = 0;
   info->content_length = 0;
   strcpy(info->body, "");
   info->body_size = 0;
   info->keep_alive = keep_alive;
+}
+
+void init_return_info(return_info_t *return_info) {
+  return_info->code = 200;
+  strcpy(return_info->type, "");
+  return_info->body = NULL;
+  return_info->name = NULL;
+  return_info->size = 0;
+  strcpy(return_info->new_path, "");
 }
 
 void set_nonblocking(int sock) {

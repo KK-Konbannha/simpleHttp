@@ -4,30 +4,8 @@
 
 int accept_get(char *buf, int remaining_size, info_type *info,
                return_info_t *return_info, int is_head, int auth) {
-  int let = 0, recv_size = 0;
-  int find_end = 0;
-  char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL;
-
-  printf("--buf\n%s\n\n", buf);
-  printf("recv_size: %d\n", recv_size);
-  printf("remaining_size: %d\n", remaining_size);
-
-  // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
-  start = buf;
-  while ((end = strstr(start, "\r\n")) != NULL) {
-    if (end == start) {
-      find_end = 1;
-      break;
-    }
-    start = end + 2;
-  }
-
-  if (find_end != 1) {
-    return_info->code = 400;
-    return EXIT_FAILURE;
-  }
-
-  printf("--buf\n%s\n\n", buf);
+  int let = 0;
+  char *token = NULL, *saveptr = NULL;
 
   // strtok_rで使用するためのコピーを作成
   char *buf_copy = (char *)malloc(strlen(buf) + 1);
@@ -71,36 +49,15 @@ int accept_get(char *buf, int remaining_size, info_type *info,
   return EXIT_SUCCESS;
 }
 
+// まだbodyを受け取っていない時は2を返す
 int accept_post(char *buf, int remaining_size, info_type *info,
                 return_info_t *return_info, int auth) {
-  int let = 0, recv_size = 0;
-  int find_end = 0, is_remaining_body = 0;
-  char *start = NULL, *end = NULL, *token = NULL, *saveptr = NULL, *body = NULL;
+  int let = 0, is_found_cr_lf_cr_lf = 0;
+  char *token = NULL, *saveptr = NULL, *body = NULL;
 
-  printf("--buf\n%s\n\n", buf);
-  printf("recv_size: %d\n", recv_size);
-  printf("remaining_size: %d\n", remaining_size);
-
-  // \r\n(キャリッジリターンとラインフィード)だけの行(終了のしるし)が見つかった場合フラグを立てる
-  start = buf;
-  while ((end = strstr(start, "\r\n")) != NULL) {
-    if (end == start) {
-      find_end = 1;
-      break;
-    }
-    start = end + 2;
-  }
-
-  if (find_end != 1) {
-    return_info->code = 400;
-    return EXIT_FAILURE;
-  }
-
-  printf("--buf\n%s\n\n", buf);
-
+  // まだbodyを受け取っていない時は2を返す
   if (strcmp(buf, "\r\n") == 0) {
-    return_info->code = 400;
-    return EXIT_FAILURE;
+    return 2;
   }
 
   // strtok_rで使用するためのコピーを作成
@@ -125,20 +82,18 @@ int accept_post(char *buf, int remaining_size, info_type *info,
       continue;
     } else {
       const char *original_pos = buf + token_offset;
-      printf("token_offset: %ld\n", token_offset);
-      printf("strncmp: %d\n", strncmp(original_pos - 4, "\r\n\r\n", 4));
 
       if (strncmp(original_pos - 4, "\r\n\r\n", 4) == 0) {
-        is_remaining_body = 1;
+        is_found_cr_lf_cr_lf = 1;
       }
     }
 
-    if (is_remaining_body) {
+    if (is_found_cr_lf_cr_lf) {
       break;
     }
 
     let = parse_header(token, info, &is_find_keep_alive);
-    if (let != 1) {
+    if (let != EXIT_SUCCESS) {
       printf("parse_header failed\n");
       free(buf_copy);
       return_info->code = 400;
@@ -150,6 +105,7 @@ int accept_post(char *buf, int remaining_size, info_type *info,
     info->keep_alive = 0;
   }
 
+  // 認証情報をチェック
   if (check_auth(info->auth, auth)) {
     return_info->code = 401;
     free(buf_copy);
@@ -165,34 +121,25 @@ int accept_post(char *buf, int remaining_size, info_type *info,
     return EXIT_FAILURE;
   }
 
-  // ボディ部分を取得
-  // ボディ部分が残っている場合はそれを使う
-  recv_size = 0;
   body = (char *)malloc(info->content_length + 1);
-  if (is_remaining_body) {
-    if (token == NULL) {
-      printf("token is NULL\n");
 
-      free(body);
-      free(buf_copy);
-      return_info->code = 500;
-      return EXIT_FAILURE;
-    }
+  if (strlen(token) < info->content_length) {
+    printf("body is too short\n");
 
-    strcpy(body, token);
-    recv_size = strlen(token);
+    free(body);
+    free(buf_copy);
+    return 2;
   }
+
+  strcpy(body, token);
 
   free(buf_copy);
-
-  if (recv_size < info->content_length) {
-    return EXIT_FAILURE;
-  }
 
   body[info->content_length] = '\0';
   printf("body: %s\n\n", body);
 
   strncpy(info->body, body, info->content_length);
+  info->body[info->content_length] = '\0';
 
   free(body);
 
