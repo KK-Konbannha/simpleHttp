@@ -33,6 +33,28 @@ int tcp_listen(int port) {
   return server_socket;
 }
 
+void init_info(info_type *info, int keep_alive) {
+  strcpy(info->method, "");
+  strcpy(info->path, "");
+  strcpy(info->version, "");
+  strcpy(info->type, "");
+  strcpy(info->auth, "");
+  info->content_length = 0;
+  strcpy(info->body, "");
+  info->body_size = 0;
+  info->keep_alive = keep_alive;
+}
+
+void init_return_info(return_info_t *return_info) {
+  return_info->code = 200;
+  return_info->is_head = 0;
+  strcpy(return_info->type, "");
+  return_info->body = NULL;
+  return_info->name = NULL;
+  return_info->size = 0;
+  strcpy(return_info->new_path, "");
+}
+
 void set_nonblocking(int sock) {
   int opts = fcntl(sock, F_GETFL);
   if (opts < 0) {
@@ -60,4 +82,61 @@ void get_file_info(FILE *fp, return_info_t *info) {
   fread(info->body, sizeof(char), info->size, fp);
 
   return;
+}
+
+Node *create_node(void *data) {
+  Node *node = (Node *)malloc(sizeof(Node));
+  if (node == NULL) {
+    perror("malloc");
+    return NULL;
+  }
+
+  node->data = data;
+  node->next = NULL;
+  node->prev = NULL;
+
+  return node;
+}
+
+void insert_node_at_tail(Node *head, Node *node) {
+  Node *cur = head;
+  while (cur->next != NULL) {
+    cur = cur->next;
+  }
+
+  cur->next = node;
+  node->prev = cur;
+}
+
+void delete_node_by_sock_fd(Node *head, int sock_fd) {
+  Node *cur = head->next; // スタートポイントを修正
+  while (cur != NULL) {
+    client_info *client = (client_info *)cur->data;
+    if (client != NULL && client->sock_fd == sock_fd) {
+      cur->prev->next = cur->next;
+      if (cur->next != NULL) {
+        cur->next->prev = cur->prev;
+      }
+
+      // client_infoのメモリを解放
+      free(client->return_info.body);
+      free(client->return_info.name);
+      free(client);
+
+      free(cur);
+      return;
+    }
+    cur = cur->next;
+  }
+}
+
+void get_current_node_num(Node *head) {
+  Node *cur = head;
+  int num = 0;
+  while (cur->next != NULL) {
+    cur = cur->next;
+    num++;
+  }
+  // シアンで出力
+  printf("\033[36mcurrent node num: %d\033[0m\n", num);
 }

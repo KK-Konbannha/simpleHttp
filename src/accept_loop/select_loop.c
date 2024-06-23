@@ -1,24 +1,27 @@
 #include "../../include/accept_loop/select_loop.h"
 #include "../../include/http_session.h"
 #include "../../include/lib.h"
+#include "../../include/send_status.h"
 
 void select_loop(int sock_listen, int auth) {
-  int child_num = 0;
-  int child_sock[MAX_CHILD_NUM];
-  info_type *child_info[MAX_CHILD_NUM];
-  memset(child_sock, 0, sizeof(child_sock));
+  Node *head = create_node(NULL);
+  if (head == NULL) {
+    perror("create_node");
+    return;
+  }
 
   while (1) {
     fd_set mask;
     FD_ZERO(&mask);
     FD_SET(sock_listen, &mask);
     int width = sock_listen + 1;
-    for (int i = 0; i < child_num; i++) {
-      if (child_sock[i] != -1) {
-        FD_SET(child_sock[i], &mask);
-        if (width <= child_sock[i]) {
-          width = child_sock[i] + 1;
-        }
+    Node *cur = head;
+    while (cur->next != NULL) {
+      cur = cur->next;
+      client_info *client = (client_info *)cur->data;
+      FD_SET(client->sock_fd, &mask);
+      if (width <= client->sock_fd) {
+        width = client->sock_fd + 1;
       }
     }
 
@@ -33,6 +36,23 @@ void select_loop(int sock_listen, int auth) {
       perror("select");
       return;
     } else if (status == 0) {
+      printf("timeout\n");
+      cur = head;
+      while (cur->next != NULL) {
+        cur = cur->next;
+        client_info *client = (client_info *)cur->data;
+        client->timeout++;
+        if (client->timeout > 10) {
+          client->return_info.code = 408;
+          send_status(client->sock_fd, &client->info, &client->return_info);
+
+          shutdown(client->sock_fd, SHUT_RDWR);
+          close(client->sock_fd);
+
+          cur = cur->prev;
+          delete_node_by_sock_fd(head, client->sock_fd);
+        }
+      }
       continue;
     }
 
@@ -44,45 +64,75 @@ void select_loop(int sock_listen, int auth) {
         if (errno != EINTR) {
           perror("accept");
         }
-      } else {
-        int pos = -1;
-        for (int i = 0; i < child_num; i++) {
-          if (child_sock[i] == 0) {
-            pos = i;
-            break;
-          }
-        }
-
-        if (pos == -1) {
-          if (child_num >= MAX_CHILD_NUM) {
-            fprintf(stderr, "too many clients\n");
-            close(sock_client);
-          } else {
-            pos = child_num;
-            child_num++;
-          }
-        }
-
-        if (pos != -1) {
-          set_nonblocking(sock_client);
-          child_sock[pos] = sock_client;
-          child_info[pos] = (info_type *)malloc(sizeof(info_type));
-          child_info[pos]->body_size = 0;
-          strcpy(child_info[pos]->body, "");
-        }
+        continue;
       }
+
+      info_type *info = (info_type *)malloc(sizeof(info_type));
+      if (info == NULL) {
+        perror("malloc");
+        close(sock_client);
+        continue;
+      }
+      init_info(info, 1);
+
+      return_info_t *return_info =
+          (return_info_t *)malloc(sizeof(return_info_t));
+      if (return_info == NULL) {
+        perror("malloc");
+        close(sock_client);
+        free(info);
+        continue;
+      }
+      init_return_info(return_info);
+
+      client_info *client = (client_info *)malloc(sizeof(client_info));
+      if (client == NULL) {
+        perror("malloc");
+        close(sock_client);
+        free(info);
+        free(return_info);
+        continue;
+      }
+
+      client->sock_fd = sock_client;
+      client->timeout = 0;
+      client->info = *info;
+      client->return_info = *return_info;
+
+      Node *node = create_node(client);
+      if (node == NULL) {
+        close(sock_client);
+        free(info);
+        free(return_info);
+        free(client);
+        continue;
+      }
+      insert_node_at_tail(head, node);
     }
 
-    for (int i = 0; i < child_num; i++) {
-      if (child_sock[i] != -1 && FD_ISSET(child_sock[i], &ready)) {
-        printf("child_sock[%d] is ready\n", i);
+    cur = head;
+    while (cur->next != NULL) {
+      cur = cur->next;
+      client_info *client = (client_info *)cur->data;
+      if (FD_ISSET(client->sock_fd, &ready)) {
+        client->timeout = 0;
 
-        int ret = http_session(child_sock[i], child_info[i], auth);
-        if (ret == -1 || ret == EXIT_SUCCESS) {
-          shutdown(child_sock[i], SHUT_RDWR);
-          close(child_sock[i]);
+        int ret = http_session(client->sock_fd, &client->info,
+                               &client->return_info, auth, 1, 0);
+        if (ret == -1 ||
+            (ret == EXIT_SUCCESS && client->info.keep_alive == 0)) {
+          printf("\x1b[31mclose sock %d\n\x1b[39m", client->sock_fd);
 
-          child_sock[i] = -1;
+          shutdown(client->sock_fd, SHUT_RDWR);
+          close(client->sock_fd);
+
+          cur = cur->prev;
+          delete_node_by_sock_fd(head, client->sock_fd);
+
+        } else if (ret == EXIT_SUCCESS && client->info.keep_alive == 1) {
+          printf("keep alive sock %d\n", client->sock_fd);
+          init_info(&client->info, 1);
+          init_return_info(&client->return_info);
         }
       }
     }

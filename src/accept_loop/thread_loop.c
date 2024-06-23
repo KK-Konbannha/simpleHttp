@@ -4,17 +4,38 @@
 void *thread_func(void *args) {
   int sock_client = *(int *)args;
   int auth = ((thread_info *)args)->auth;
+  int epoll_fd = epoll_create1(0);
+  if (epoll_fd == -1) {
+    perror("epoll_create1");
+    pthread_exit(NULL);
+  }
 
   pthread_detach(pthread_self());
 
-  info_type info = {0};
-  strcpy(info.body, "");
-  info.body_size = 0;
+  info_type info;
+  return_info_t return_info;
+
+  init_info(&info, 1);
+  init_return_info(&return_info);
+
+  struct epoll_event ev;
+  ev.events = EPOLLIN;
+  ev.data.fd = sock_client;
+  int ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_client, &ev);
+  if (ret == -1 && errno != EEXIST) {
+    // do nothing
+  } else if (ret == -1) {
+    perror("epoll_ctl");
+    pthread_exit(NULL);
+  }
 
   while (1) {
-    int ret = http_session(sock_client, &info, auth);
-    if (ret == -1 || ret == EXIT_SUCCESS) {
+    int ret = http_session(sock_client, &info, &return_info, auth, 0, epoll_fd);
+    if (ret == -1 || (ret == EXIT_SUCCESS && info.keep_alive == 0)) {
       break;
+    } else if (ret == EXIT_SUCCESS && info.keep_alive == 1) {
+      init_info(&info, 1);
+      init_return_info(&return_info);
     }
   }
 
@@ -22,6 +43,9 @@ void *thread_func(void *args) {
   close(sock_client);
 
   free(args);
+
+  epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);
+  close(epoll_fd);
 
   pthread_exit(NULL);
 }
