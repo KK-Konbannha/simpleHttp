@@ -78,10 +78,12 @@ void _send_200(int sock, info_type *info, return_info_t *return_info) {
   }
 
   // bodyの送信
-  ret = send(sock, return_info->body, return_info->size, 0);
-  if (ret < 0) {
-    perror("send");
-    return;
+  if (!return_info->is_head) {
+    ret = send(sock, return_info->body, return_info->size, 0);
+    if (ret < 0) {
+      perror("send");
+      return;
+    }
   }
 
   return;
@@ -180,13 +182,12 @@ void _send_400(int sock, info_type *info) {
   char buf[64];
   int ret;
 
+  // set keep_alive flag to 0
+  info->keep_alive = 0;
+
   // 400 Bad Request
   sprintf(buf, "HTTP/1.0 400 Bad Request\r\n");
-  if (info->keep_alive) {
-    sprintf(buf + strlen(buf), "Connection: keep-alive\r\n");
-  } else {
-    sprintf(buf + strlen(buf), "Connection: close\r\n");
-  }
+  sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
   // debug

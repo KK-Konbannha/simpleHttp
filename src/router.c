@@ -3,7 +3,7 @@
 #include "../include/send_status.h"
 
 void route_request(int sock, info_type *info, return_info_t *return_info) {
-  if (strcmp(info->method, "GET") == 0) {
+  if (strcmp(info->method, "GET") == 0 || strcmp(info->method, "HEAD") == 0) {
     route_get_request(sock, info, return_info);
   } else if (strcmp(info->method, "POST") == 0) {
     route_post_request(sock, info, return_info);
@@ -68,9 +68,11 @@ void route_get_request(int sock, info_type *info, return_info_t *return_info) {
         continue;
       }
 
+      fclose(rejection_file);
       return;
     }
   }
+  fclose(rejection_file);
 
   strcpy(line, "");
   token = NULL, code = NULL;
@@ -111,9 +113,11 @@ void route_get_request(int sock, info_type *info, return_info_t *return_info) {
       }
 
       strcpy(return_info->new_path, new_path);
+      fclose(conf_file);
       return;
     }
   }
+  fclose(conf_file);
 
   if (strcmp(info->path, "/") == 0 || strcmp(info->path, "/index.html") == 0) {
     handle_index(sock, info, return_info);

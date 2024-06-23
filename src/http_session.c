@@ -43,15 +43,9 @@ int analyze_request(char *request_token, info_type *info,
 
   // リクエスト部分を解析
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
-  len = parse_request(token, info);
-  if (len == -1) {
-    printf("parse request failed\n");
-    return_info->code = 400;
-    free(request_token_copy);
-    return EXIT_FAILURE;
-  } else if (len == EXIT_FAILURE) {
-    printf("too long url\n");
-    return_info->code = 414;
+  len = parse_request(token, info, return_info);
+  if (len == EXIT_FAILURE) {
+    printf("return_info->code: %d\n", return_info->code);
     free(request_token_copy);
     return EXIT_FAILURE;
   }
@@ -69,7 +63,7 @@ int analyze_request(char *request_token, info_type *info,
     printf("--remaining_request_token\n%s\n\n", remaining_request_token);
 
     int ret = accept_get(remaining_request_token, remaining_size, info,
-                         return_info, strcmp(info->method, "HEAD") == 0, auth);
+                         return_info, auth);
     if (ret == EXIT_FAILURE) {
       return EXIT_FAILURE;
     }
@@ -106,46 +100,35 @@ int analyze_request(char *request_token, info_type *info,
 // -1: 異常値
 // EXIT_FAILURE: 解析失敗
 int http_session(int sock, info_type *info, return_info_t *return_info,
-                 int auth, int is_non_blocking) {
+                 int auth, int is_non_blocking, int epoll_fd) {
+  int ret = 0;
   int recv_size = info->body_size;
   char buf[8192] = "";
+
+  set_nonblocking(sock);
 
   // bufにinfo->bodyの内容をコピー
   strcpy(buf, info->body);
 
-  // recvでデータを受信
-  int epoll_fd = epoll_create1(0);
-  if (epoll_fd == -1) {
-    perror("epoll_create1");
-    return -1;
-  }
-
-  struct epoll_event ev;
-  ev.events = EPOLLIN;
-  ev.data.fd = sock;
-  if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock, &ev) == -1) {
-    perror("epoll_ctl");
-    return -1;
-  }
-
-  struct epoll_event events[1];
-  int nfds = epoll_wait(epoll_fd, events, 1, 10000);
-  if (nfds == -1) {
-    perror("epoll_wait");
-    return -1;
-  } else if (nfds == 0) {
-    return_info->code = 408;
-    send_status(sock, info, return_info);
-    return EXIT_SUCCESS;
-  } else {
-    int len = recv(sock, buf + recv_size, 8192 - recv_size, MSG_DONTWAIT);
-    if (len <= 0) {
-      perror("recv");
+  if (!is_non_blocking) {
+    struct epoll_event events[1];
+    int nfds = epoll_wait(epoll_fd, events, 1, 10000);
+    if (nfds == -1) {
+      perror("epoll_wait");
       return -1;
+    } else if (nfds == 0) {
+      return_info->code = 408;
+      send_status(sock, info, return_info);
+      return EXIT_SUCCESS;
     }
-    recv_size += len;
-    info->body_size = recv_size;
   }
+  int len = recv(sock, buf + recv_size, 8192 - recv_size, 0);
+  if (len <= 0) {
+    perror("recv");
+    return -1;
+  }
+  recv_size += len;
+  info->body_size = recv_size;
 
   // info->bodyを更新
   strcpy(info->body, buf);
@@ -157,7 +140,7 @@ int http_session(int sock, info_type *info, return_info_t *return_info,
 
   // リクエスト部分を解析
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
-  int ret = analyze_request(buf, info, return_info, auth);
+  ret = analyze_request(buf, info, return_info, auth);
   if (ret == EXIT_FAILURE) {
     send_status(sock, info, return_info);
     return EXIT_SUCCESS;
@@ -168,6 +151,9 @@ int http_session(int sock, info_type *info, return_info_t *return_info,
 
   // ルーティング
   route_request(sock, info, return_info);
+  if (strcmp(info->method, "HEAD") == 0) {
+    return_info->is_head = 1;
+  }
   send_status(sock, info, return_info);
 
   return EXIT_SUCCESS;

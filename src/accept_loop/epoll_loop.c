@@ -4,6 +4,12 @@
 #include "../../include/send_status.h"
 
 void epoll_loop(int sock_listen, int auth) {
+  Node *head = create_node(NULL);
+  if (head == NULL) {
+    perror("create_node");
+    return;
+  }
+
   int epoll_fd = epoll_create1(0);
   if (epoll_fd == -1) {
     perror("epoll_create1");
@@ -19,12 +25,6 @@ void epoll_loop(int sock_listen, int auth) {
     return;
   }
 
-  Node *head = create_node(NULL);
-  if (head == NULL) {
-    close(epoll_fd);
-    return;
-  }
-
   struct epoll_event events[MAX_EVENTS];
   while (1) {
     int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 1000);
@@ -34,6 +34,7 @@ void epoll_loop(int sock_listen, int auth) {
       return;
     } else if (nfds == 0) {
       printf("timeout\n");
+      get_current_node_num(head);
       Node *cur = head;
       while (cur != NULL && cur->next != NULL) {
         cur = cur->next;
@@ -48,6 +49,9 @@ void epoll_loop(int sock_listen, int auth) {
 
           shutdown(client->sock_fd, SHUT_RDWR);
           close(client->sock_fd);
+
+          free(client->return_info.body);
+          free(client->return_info.name);
 
           free(client);
 
@@ -102,6 +106,7 @@ void epoll_loop(int sock_listen, int auth) {
         if (node == NULL) {
           close(sock_client);
           free(info);
+          free(return_info);
           free(client);
           continue;
         }
@@ -125,7 +130,7 @@ void epoll_loop(int sock_listen, int auth) {
         client->timeout = 0;
         printf("sock_client: %d\n", sock_client);
 
-        int ret = http_session(sock_client, info, return_info, auth, 1);
+        int ret = http_session(sock_client, info, return_info, auth, 1, 0);
 
         if (ret == -1 || (ret == EXIT_SUCCESS && info->keep_alive == 0)) {
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);
@@ -140,46 +145,6 @@ void epoll_loop(int sock_listen, int auth) {
           init_return_info(return_info);
         }
       }
-    }
-  }
-}
-
-Node *create_node(void *data) {
-  Node *node = (Node *)malloc(sizeof(Node));
-  if (node == NULL) {
-    perror("malloc");
-    return NULL;
-  }
-
-  node->data = data;
-  node->next = NULL;
-  node->prev = NULL;
-
-  return node;
-}
-
-void insert_node_at_tail(Node *head, Node *node) {
-  Node *cur = head;
-  while (cur->next != NULL) {
-    cur = cur->next;
-  }
-
-  cur->next = node;
-  node->prev = cur;
-}
-
-void delete_node_by_sock_fd(Node *head, int sock_fd) {
-  Node *cur = head;
-  while (cur->next != NULL) {
-    cur = cur->next;
-    if (((client_info *)cur->data)->sock_fd == sock_fd) {
-      cur->prev->next = cur->next;
-      if (cur->next != NULL) {
-        cur->next->prev = cur->prev;
-      }
-
-      free(cur);
-      return;
     }
   }
 }

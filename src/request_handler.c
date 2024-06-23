@@ -3,7 +3,7 @@
 #include "../include/send_status.h"
 
 int accept_get(char *buf, int remaining_size, info_type *info,
-               return_info_t *return_info, int is_head, int auth) {
+               return_info_t *return_info, int auth) {
   int let = 0;
   char *token = NULL, *saveptr = NULL;
 
@@ -185,7 +185,7 @@ int parse_header(char *field, info_type *info, int *is_find_keep_alive) {
   return EXIT_SUCCESS;
 }
 
-int parse_request(char *status, info_type *pinfo) {
+int parse_request(char *status, info_type *pinfo, return_info_t *return_info) {
   char *method = NULL, *path = NULL, *version = NULL;
   char *token = NULL, *saveptr = NULL;
 
@@ -205,6 +205,7 @@ int parse_request(char *status, info_type *pinfo) {
   method = token;
   if (strlen(method) > 7) {
     free(status_copy);
+    return_info->code = 400;
     return EXIT_FAILURE;
   }
   printf("method: %s\n", method);
@@ -212,13 +213,15 @@ int parse_request(char *status, info_type *pinfo) {
   token = strtok_r(NULL, " ", &saveptr);
   if (token == NULL || token[0] != '/' || strlen(token) > 255) {
     free(status_copy);
+    return_info->code = 400;
     return EXIT_FAILURE;
   }
 
   path = token;
   if (strlen(path) > 255) {
     free(status_copy);
-    return -1;
+    return_info->code = 414;
+    return EXIT_FAILURE;
   }
   printf("path: %s\n", path);
 
@@ -226,6 +229,7 @@ int parse_request(char *status, info_type *pinfo) {
   if (strlen(version) <= 0 || strlen(version) > 9 ||
       (strcmp(version, "HTTP/1.0") != 0 && strcmp(version, "HTTP/1.1")) != 0) {
     free(status_copy);
+    return_info->code = 400;
     return EXIT_FAILURE;
   }
 

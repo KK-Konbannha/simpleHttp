@@ -8,7 +8,7 @@
 #ifndef SELECT_LOOP_H
 #define SELECT_LOOP_H
 
-#define MAX_CHILD_NUM 1200
+#define MAX_CHILD_NUM 2048
 
 void select_loop(int sock_listen, int auth);
 

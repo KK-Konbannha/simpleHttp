@@ -9,6 +9,6 @@
 int analyze_request(char *request_token, info_type *info,
                     return_info_t *return_info, int auth);
 int http_session(int sock, info_type *info, return_info_t *return_info,
-                 int auth, int is_non_blocking);
+                 int auth, int is_non_blocking, int epoll_fd);
 
 #endif
