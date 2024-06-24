@@ -97,11 +97,12 @@ void epoll_loop(int sock_listen, int auth) {
         client->info = *info;
         client->return_info = *return_info;
 
+        free(info);
+        free(return_info);
+
         Node *node = create_node(client);
         if (node == NULL) {
           close(sock_client);
-          free(info);
-          free(return_info);
           free(client);
           continue;
         }
@@ -112,8 +113,6 @@ void epoll_loop(int sock_listen, int auth) {
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_client, &ev) == -1) {
           perror("epoll_ctl: sock_client");
           close(sock_client);
-          free(info);
-          free(return_info);
           free(client);
           continue;
         }

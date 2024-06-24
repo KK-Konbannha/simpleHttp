@@ -98,11 +98,12 @@ void select_loop(int sock_listen, int auth) {
       client->info = *info;
       client->return_info = *return_info;
 
+      free(info);
+      free(return_info);
+
       Node *node = create_node(client);
       if (node == NULL) {
         close(sock_client);
-        free(info);
-        free(return_info);
         free(client);
         continue;
       }

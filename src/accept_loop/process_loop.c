@@ -9,11 +9,14 @@ void process_loop(int sock_listen, int auth) {
   sigaction(SIGCHLD, &sa, NULL);
 
   while (1) {
-    struct sockaddr addr;
+    struct sockaddr_in addr;
     int sock_client;
-    int len;
+    socklen_t len = sizeof(addr);
 
-    sock_client = accept(sock_listen, &addr, (socklen_t *)&len);
+    memset(&addr, 0, sizeof(addr));
+
+    sock_client =
+        accept(sock_listen, (struct sockaddr *)&addr, (socklen_t *)&len);
     if (sock_client == -1) {
       if (errno != EINTR) {
         perror("accept");
@@ -56,6 +59,10 @@ void process_loop(int sock_listen, int auth) {
         }
         shutdown(sock_client, SHUT_RDWR);
         close(sock_client);
+
+        free(return_info.body);
+
+        close(epoll_fd);
         _exit(0);
       } else {
         close(sock_client);

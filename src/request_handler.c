@@ -227,5 +227,6 @@ int parse_request(char *status, info_type *pinfo, return_info_t *return_info) {
   strcpy(pinfo->path, path);
   strcpy(pinfo->version, version);
 
+  free(status_copy);
   return EXIT_SUCCESS;
 }

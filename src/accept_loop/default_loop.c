@@ -41,6 +41,9 @@ void default_loop(int sock_listen, int auth) {
 
         shutdown(sock_client, SHUT_RDWR);
         close(sock_client);
+
+        free(return_info.body);
+
         break;
       } else if (ret == EXIT_SUCCESS && info.keep_alive == 1) {
         init_info(&info, 1);
