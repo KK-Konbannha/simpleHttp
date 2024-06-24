@@ -44,18 +44,12 @@ void epoll_loop(int sock_listen, int auth) {
           client->return_info.code = 408;
           send_status(client->sock_fd, &client->info, &client->return_info);
 
+          cur = cur->prev;
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client->sock_fd, NULL);
           delete_node_by_sock_fd(head, client->sock_fd);
 
           shutdown(client->sock_fd, SHUT_RDWR);
           close(client->sock_fd);
-
-          free(client->return_info.body);
-          free(client->return_info.name);
-
-          free(client);
-
-          cur = cur->prev;
         }
       }
       continue;
@@ -95,6 +89,7 @@ void epoll_loop(int sock_listen, int auth) {
           perror("malloc");
           close(sock_client);
           free(info);
+          free(return_info);
           continue;
         }
         client->sock_fd = sock_client;
@@ -119,6 +114,8 @@ void epoll_loop(int sock_listen, int auth) {
           perror("epoll_ctl: sock_client");
           close(sock_client);
           free(info);
+          free(return_info);
+          free(client);
           continue;
         }
       } else {
@@ -138,8 +135,6 @@ void epoll_loop(int sock_listen, int auth) {
 
           shutdown(sock_client, SHUT_RDWR);
           close(sock_client);
-
-          free(client);
         } else if (ret == EXIT_SUCCESS && info->keep_alive == 1) {
           init_info(info, 1);
           init_return_info(return_info);
