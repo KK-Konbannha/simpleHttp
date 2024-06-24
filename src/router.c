@@ -18,6 +18,7 @@ void route_request(int sock, info_type *info, return_info_t *return_info) {
 }
 
 void route_get_request(int sock, info_type *info, return_info_t *return_info) {
+
   if (strstr(info->path, "..") != NULL || strstr(info->path, "//") != NULL ||
       strstr(info->path, "~") != NULL) {
     // Handle the 400 info->path
@@ -29,7 +30,7 @@ void route_get_request(int sock, info_type *info, return_info_t *return_info) {
 
   char line[1024] = "";
   char *token = NULL, *code = NULL, *rejection_path = NULL, *old_path = NULL,
-       *new_path = NULL;
+       *new_path = NULL, *saveptr = NULL;
 
   FILE *rejection_file = fopen("rejection.csv", "r");
   if (rejection_file == NULL) {
@@ -42,14 +43,11 @@ void route_get_request(int sock, info_type *info, return_info_t *return_info) {
   }
 
   while (fgets(line, sizeof(line), rejection_file)) {
-    token = strtok(line, ",");
+    token = strtok_r(line, ",", &saveptr);
     code = token;
-    token = strtok(NULL, ",");
+    token = strtok_r(NULL, ",", &saveptr);
     rejection_path = token;
     rejection_path[strlen(rejection_path) - 1] = '\0';
-
-    printf("path: %s\n", info->path);
-    printf("code: %s, path: %s\n", code, rejection_path);
 
     if (strcmp(info->path, rejection_path) == 0) {
       if (strcmp(code, "403") == 0) {
@@ -87,12 +85,13 @@ void route_get_request(int sock, info_type *info, return_info_t *return_info) {
     return;
   }
 
+  *saveptr = '\0';
   while (fgets(line, sizeof(line), conf_file)) {
-    token = strtok(line, ",");
+    token = strtok_r(line, ",", &saveptr);
     code = token;
-    token = strtok(NULL, ",");
+    token = strtok_r(NULL, ",", &saveptr);
     old_path = token;
-    token = strtok(NULL, ",");
+    token = strtok_r(NULL, ",", &saveptr);
     new_path = token;
 
     if (strcmp(info->path, old_path) == 0) {

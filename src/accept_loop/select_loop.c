@@ -36,7 +36,6 @@ void select_loop(int sock_listen, int auth) {
       perror("select");
       return;
     } else if (status == 0) {
-      printf("timeout\n");
       cur = head;
       while (cur->next != NULL) {
         cur = cur->next;
@@ -121,7 +120,6 @@ void select_loop(int sock_listen, int auth) {
                                &client->return_info, auth, 1, 0);
         if (ret == -1 ||
             (ret == EXIT_SUCCESS && client->info.keep_alive == 0)) {
-          printf("\x1b[31mclose sock %d\n\x1b[39m", client->sock_fd);
 
           shutdown(client->sock_fd, SHUT_RDWR);
           close(client->sock_fd);
@@ -130,7 +128,6 @@ void select_loop(int sock_listen, int auth) {
           delete_node_by_sock_fd(head, client->sock_fd);
 
         } else if (ret == EXIT_SUCCESS && client->info.keep_alive == 1) {
-          printf("keep alive sock %d\n", client->sock_fd);
           init_info(&client->info, 1);
           init_return_info(&client->return_info);
         }

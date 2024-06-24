@@ -33,7 +33,6 @@ void epoll_loop(int sock_listen, int auth) {
       close(epoll_fd);
       return;
     } else if (nfds == 0) {
-      printf("timeout\n");
       get_current_node_num(head);
       Node *cur = head;
       while (cur != NULL && cur->next != NULL) {
@@ -109,7 +108,6 @@ void epoll_loop(int sock_listen, int auth) {
 
         ev.events = EPOLLIN;
         ev.data.ptr = client;
-        printf("sock_client: %d\n", sock_client);
         if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sock_client, &ev) == -1) {
           perror("epoll_ctl: sock_client");
           close(sock_client);
@@ -125,7 +123,6 @@ void epoll_loop(int sock_listen, int auth) {
         return_info_t *return_info = &client->return_info;
 
         client->timeout = 0;
-        printf("sock_client: %d\n", sock_client);
 
         int ret = http_session(sock_client, info, return_info, auth, 1, 0);
 

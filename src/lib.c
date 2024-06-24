@@ -137,6 +137,4 @@ void get_current_node_num(Node *head) {
     cur = cur->next;
     num++;
   }
-  // シアンで出力
-  printf("\033[36mcurrent node num: %d\033[0m\n", num);
 }

@@ -260,7 +260,6 @@ void handle_form(int sock, info_type *info, return_info_t *return_info) {
     return_info->code = 404;
     return;
   }
-  printf("name: %s\n", name);
 
   char *return_url = (char *)malloc(strlen("/done?name=") + strlen(name) + 1);
 

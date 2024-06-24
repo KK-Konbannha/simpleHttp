@@ -23,7 +23,7 @@ int analyze_request(char *request_token, info_type *info,
   // 改行までの情報を取得
   token = strtok_r(request_token_copy, "\r\n", &saveptr);
   if (token == NULL) {
-    printf("token is NULL\n");
+    fprintf(stderr, "token is NULL\n");
     return_info->code = 400;
     free(request_token_copy);
     return EXIT_FAILURE;
@@ -33,9 +33,9 @@ int analyze_request(char *request_token, info_type *info,
   if ((request_token[token_len] != '\r' ||
        request_token[token_len + 1] != '\n') &&
       (request_token[token_len] != '\n')) {
-    printf("token is invalid\n");
-    printf("token is %s\n", token);
-    printf("request_token is %s\n", request_token);
+    fprintf(stderr, "token is invalid\n");
+    fprintf(stderr, "token is %s\n", token);
+    fprintf(stderr, "request_token is %s\n", request_token);
     return_info->code = 400;
     free(request_token_copy);
     return EXIT_FAILURE;
@@ -45,7 +45,7 @@ int analyze_request(char *request_token, info_type *info,
   // 解析結果(メソッド、パス、認証情報)をinfoに格納
   len = parse_request(token, info, return_info);
   if (len == EXIT_FAILURE) {
-    printf("return_info->code: %d\n", return_info->code);
+    fprintf(stderr, "parse_request error\n");
     free(request_token_copy);
     return EXIT_FAILURE;
   }
@@ -59,9 +59,6 @@ int analyze_request(char *request_token, info_type *info,
     remaining_request_token = request_token + token_len + 2;
     remaining_size = sizeof(request_token) - recv_size - token_len - 2;
 
-    printf("--request_token\n%s\n\n", request_token);
-    printf("--remaining_request_token\n%s\n\n", remaining_request_token);
-
     int ret = accept_get(remaining_request_token, remaining_size, info,
                          return_info, auth);
     if (ret == EXIT_FAILURE) {
@@ -71,9 +68,6 @@ int analyze_request(char *request_token, info_type *info,
   } else if (strcmp(info->method, "POST") == 0) {
     remaining_request_token = request_token + token_len + 2;
     remaining_size = sizeof(request_token) - recv_size - token_len - 2;
-
-    printf("--request_token\n%s\n\n", request_token);
-    printf("--remaining_request_token\n%s\n\n", remaining_request_token);
 
     int ret = accept_post(remaining_request_token, remaining_size, info,
                           return_info, auth);

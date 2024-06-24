@@ -22,10 +22,8 @@ int accept_get(char *buf, int remaining_size, info_type *info,
   int is_find_keep_alive = 0;
   for (token = strtok_r(buf_copy, "\r\n", &saveptr); token;
        token = strtok_r(NULL, "\r\n", &saveptr)) {
-    printf("token: %s\n", token);
     let = parse_header(token, info, &is_find_keep_alive);
     if (let != EXIT_SUCCESS) {
-      printf("parse_header failed\n");
       return_info->code = 400;
       free(buf_copy);
       return EXIT_FAILURE;
@@ -35,7 +33,6 @@ int accept_get(char *buf, int remaining_size, info_type *info,
   if (is_find_keep_alive == 0) {
     info->keep_alive = 0;
   }
-  printf("keep-alive: %d\n", info->keep_alive);
 
   free(buf_copy);
 
@@ -44,7 +41,6 @@ int accept_get(char *buf, int remaining_size, info_type *info,
     return_info->code = 401;
     return EXIT_FAILURE;
   }
-  printf("ret: %d\n", ret);
 
   return EXIT_SUCCESS;
 }
@@ -94,7 +90,6 @@ int accept_post(char *buf, int remaining_size, info_type *info,
 
     let = parse_header(token, info, &is_find_keep_alive);
     if (let != EXIT_SUCCESS) {
-      printf("parse_header failed\n");
       free(buf_copy);
       return_info->code = 400;
       return EXIT_FAILURE;
@@ -115,7 +110,6 @@ int accept_post(char *buf, int remaining_size, info_type *info,
   // content-lengthがあるかチェック
   // なければ400を返す
   if (info->content_length == 0) {
-    printf("content-length is 0\n");
     return_info->code = 400;
     free(buf_copy);
     return EXIT_FAILURE;
@@ -124,7 +118,6 @@ int accept_post(char *buf, int remaining_size, info_type *info,
   body = (char *)malloc(info->content_length + 1);
 
   if (strlen(token) < info->content_length) {
-    printf("body is too short\n");
 
     free(body);
     free(buf_copy);
@@ -136,7 +129,6 @@ int accept_post(char *buf, int remaining_size, info_type *info,
   free(buf_copy);
 
   body[info->content_length] = '\0';
-  printf("body: %s\n\n", body);
 
   strncpy(info->body, body, info->content_length);
   info->body[info->content_length] = '\0';
@@ -164,14 +156,11 @@ int parse_header(char *field, info_type *info, int *is_find_keep_alive) {
 
   key = token;
   value = field + strlen(key) + 2;
-  printf("key: %s, value: %s\n", key, value);
 
   if (strcmp(key, "Authorization") == 0) {
     strcpy(info->auth, value);
-    printf("auth: %s\n", info->auth);
   } else if (strcmp(key, "Content-Length") == 0) {
     info->content_length = atoi(value);
-    printf("content-length: %d\n", info->content_length);
   } else if (strcmp(key, "Connection") == 0) {
     *is_find_keep_alive = 1;
     if (strcmp(value, "keep-alive") == 0) {
@@ -208,7 +197,6 @@ int parse_request(char *status, info_type *pinfo, return_info_t *return_info) {
     return_info->code = 400;
     return EXIT_FAILURE;
   }
-  printf("method: %s\n", method);
 
   token = strtok_r(NULL, " ", &saveptr);
   if (token == NULL || token[0] != '/' || strlen(token) > 255) {
@@ -223,7 +211,6 @@ int parse_request(char *status, info_type *pinfo, return_info_t *return_info) {
     return_info->code = 414;
     return EXIT_FAILURE;
   }
-  printf("path: %s\n", path);
 
   version = &status[strlen(method) + 1 + strlen(path) + 1];
   if (strlen(version) <= 0 || strlen(version) > 9 ||
@@ -232,8 +219,6 @@ int parse_request(char *status, info_type *pinfo, return_info_t *return_info) {
     return_info->code = 400;
     return EXIT_FAILURE;
   }
-
-  printf("version: %s\n", version);
 
   strcpy(pinfo->method, method);
   strcpy(pinfo->path, path);

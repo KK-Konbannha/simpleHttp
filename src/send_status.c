@@ -67,9 +67,6 @@ void _send_200(int sock, info_type *info, return_info_t *return_info) {
   }
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -107,9 +104,6 @@ void _send_301(int sock, char *location, info_type *info) {
   }
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -134,9 +128,6 @@ void _send_302(int sock, char *location, info_type *info) {
   }
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -160,9 +151,6 @@ void _send_303(int sock, char *location, info_type *info) {
     sprintf(buf + strlen(buf), "Connection: close\r\n");
   }
   sprintf(buf + strlen(buf), "\r\n");
-
-  // debug
-  printf("%s", buf);
 
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
@@ -190,9 +178,6 @@ void _send_400(int sock, info_type *info) {
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -217,9 +202,6 @@ void _send_401(int sock, info_type *info) {
   }
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -238,9 +220,6 @@ void _send_403(int sock, info_type *info) {
   sprintf(buf, "HTTP/1.0 403 Forbidden\r\n");
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
-
-  // debug
-  printf("%s", buf);
 
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
@@ -261,9 +240,6 @@ void _send_404(int sock, info_type *info) {
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -282,9 +258,6 @@ void _send_408(int sock, info_type *info) {
   sprintf(buf, "HTTP/1.0 408 Request Timeout\r\n");
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
-
-  // debug
-  printf("%s", buf);
 
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
@@ -305,9 +278,6 @@ void _send_414(int sock, info_type *info) {
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -326,9 +296,6 @@ void _send_418(int sock, info_type *info) {
   sprintf(buf, "HTTP/1.0 418 I'm a teapot\r\n");
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
-
-  // debug
-  printf("%s", buf);
 
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
@@ -353,9 +320,6 @@ void _send_500(int sock, info_type *info) {
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
 
-  // debug
-  printf("%s", buf);
-
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
   if (ret < 0) {
@@ -375,8 +339,6 @@ void _send_501(int sock, info_type *info) {
   sprintf(buf, "HTTP/1.0 501 Not Implemented\r\n");
   sprintf(buf + strlen(buf), "Connection: close\r\n");
   sprintf(buf + strlen(buf), "\r\n");
-  // debug
-  printf("%s", buf);
 
   // 送信
   ret = send(sock, buf, strlen(buf), 0);
