@@ -6,7 +6,7 @@ BIN_DIR=bin
 CC=gcc
 LD=gcc
 
-CFLAGS=-c -Wall -pedantic-errors -O0 -g3 -std=gnu11 -I$(INC_DIR)
+CFLAGS=-g -O0 -Wall -pedantic-errors -std=gnu11 -I$(INC_DIR)
 LDFLAGS=-pthread
 
 
@@ -27,10 +27,10 @@ $(EXECUTABLE): $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/accept_loop/%.o: $(SRC_DIR)/accept_loop/%.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 
 clean:

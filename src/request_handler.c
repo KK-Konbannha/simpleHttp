@@ -157,11 +157,14 @@ int parse_header(char *field, info_type *info, int *is_find_keep_alive) {
   key = token;
   value = field + strlen(key) + 2;
 
-  if (strcmp(key, "Authorization") == 0) {
+  to_lower(key);
+  to_lower(value);
+
+  if (strcmp(key, "authorization") == 0) {
     strcpy(info->auth, value);
-  } else if (strcmp(key, "Content-Length") == 0) {
+  } else if (strcmp(key, "content-length") == 0) {
     info->content_length = atoi(value);
-  } else if (strcmp(key, "Connection") == 0) {
+  } else if (strcmp(key, "connection") == 0) {
     *is_find_keep_alive = 1;
     if (strcmp(value, "keep-alive") == 0) {
       info->keep_alive = 1;

@@ -45,10 +45,11 @@ void epoll_loop(int sock_listen, int auth) {
 
           cur = cur->prev;
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client->sock_fd, NULL);
-          delete_node_by_sock_fd(head, client->sock_fd);
 
           shutdown(client->sock_fd, SHUT_RDWR);
           close(client->sock_fd);
+
+          delete_node_by_sock_fd(head, client->sock_fd);
         }
       }
       continue;
@@ -128,10 +129,11 @@ void epoll_loop(int sock_listen, int auth) {
 
         if (ret == -1 || (ret == EXIT_SUCCESS && info->keep_alive == 0)) {
           epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);
-          delete_node_by_sock_fd(head, sock_client);
 
           shutdown(sock_client, SHUT_RDWR);
           close(sock_client);
+
+          delete_node_by_sock_fd(head, sock_client);
         } else if (ret == EXIT_SUCCESS && info->keep_alive == 1) {
           init_info(info, 1);
           init_return_info(return_info);

@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -48,6 +49,8 @@ void init_info(info_type *info, int keep_alive);
 void init_return_info(return_info_t *return_info);
 void set_nonblocking(int sock);
 void get_file_info(FILE *fp, return_info_t *info);
+
+void to_lower(char *str);
 
 Node *create_node(void *data);
 void insert_node_at_tail(Node *head, Node *node);

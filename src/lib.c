@@ -84,6 +84,13 @@ void get_file_info(FILE *fp, return_info_t *info) {
   return;
 }
 
+void to_lower(char *str) {
+  while (*str) {
+    *str = tolower((unsigned char)*str);
+    str++;
+  }
+}
+
 Node *create_node(void *data) {
   Node *node = (Node *)malloc(sizeof(Node));
   if (node == NULL) {
