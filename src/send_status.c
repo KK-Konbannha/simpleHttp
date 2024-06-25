@@ -85,6 +85,8 @@ void _send_200(int sock, info_type *info, return_info_t *return_info) {
     }
   }
 
+  free(return_info->body);
+
   return;
 }
 

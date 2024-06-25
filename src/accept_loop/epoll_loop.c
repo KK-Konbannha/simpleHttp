@@ -66,39 +66,16 @@ void epoll_loop(int sock_listen, int auth) {
           continue;
         }
 
-        info_type *info = (info_type *)malloc(sizeof(info_type));
-        if (info == NULL) {
-          perror("malloc");
-          close(sock_client);
-          continue;
-        }
-        init_info(info, 1);
-
-        return_info_t *return_info =
-            (return_info_t *)malloc(sizeof(return_info_t));
-        if (return_info == NULL) {
-          perror("malloc");
-          close(sock_client);
-          free(info);
-          continue;
-        }
-        init_return_info(return_info);
-
         client_info *client = (client_info *)malloc(sizeof(client_info));
         if (client == NULL) {
           perror("malloc");
           close(sock_client);
-          free(info);
-          free(return_info);
           continue;
         }
         client->sock_fd = sock_client;
         client->timeout = 0;
-        client->info = *info;
-        client->return_info = *return_info;
-
-        free(info);
-        free(return_info);
+        init_info(&client->info, 1);
+        init_return_info(&client->return_info);
 
         Node *node = create_node(client);
         if (node == NULL) {

@@ -1,5 +1,4 @@
 #include "../include/handler.h"
-#include "../include/send_status.h"
 
 void handle_index(int sock, info_type *info, return_info_t *return_info) {
 
@@ -108,6 +107,7 @@ void handle_done(int sock, info_type *info, return_info_t *return_info) {
 void handle_api(int sock, info_type *info, return_info_t *return_info) {
   if (strcmp(info->path, "/api/echo") == 0) {
     // Handle the echo api
+    return_info->body = (char *)malloc(strlen("Echo API\r\n") + 1);
     strcpy(return_info->body, "Echo API\r\n");
     return_info->size = strlen(return_info->body);
     strcpy(return_info->type, "text/plain");
@@ -120,7 +120,8 @@ void handle_api(int sock, info_type *info, return_info_t *return_info) {
     char buf[64];
     strftime(buf, sizeof(buf), "{\"date\": \"%Y-%m-%d %H:%M:%S\"}\n", tm);
 
-    return_info->body = buf;
+    return_info->body = (char *)malloc(strlen(buf) + 1);
+    strcpy(return_info->body, buf);
     return_info->size = strlen(return_info->body);
     strcpy(return_info->type, "application/json");
 
@@ -131,7 +132,8 @@ void handle_api(int sock, info_type *info, return_info_t *return_info) {
     char buf[64];
     sprintf(buf, "{\"count\": %d}\n", count);
 
-    return_info->body = buf;
+    return_info->body = (char *)malloc(strlen(buf) + 1);
+    strcpy(return_info->body, buf);
     return_info->size = strlen(return_info->body);
     strcpy(return_info->type, "application/json");
 

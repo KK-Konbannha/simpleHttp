@@ -42,8 +42,6 @@ void *thread_func(void *args) {
   shutdown(sock_client, SHUT_RDWR);
   close(sock_client);
 
-  free(return_info.body);
-
   free(args);
 
   epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sock_client, NULL);

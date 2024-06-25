@@ -126,8 +126,6 @@ void delete_node_by_sock_fd(Node *head, int sock_fd) {
       }
 
       // client_infoのメモリを解放
-      free(client->return_info.body);
-      free(client->return_info.name);
       free(client);
 
       free(cur);

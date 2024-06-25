@@ -60,8 +60,6 @@ void process_loop(int sock_listen, int auth) {
         shutdown(sock_client, SHUT_RDWR);
         close(sock_client);
 
-        free(return_info.body);
-
         close(epoll_fd);
         _exit(0);
       } else {
