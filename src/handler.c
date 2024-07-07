@@ -191,6 +191,8 @@ void handle_static(int sock, info_type *info, return_info_t *return_info) {
     get_file_info(fp, return_info);
     return_info->code = 200;
 
+    fclose(fp);
+
   } else if (strncmp(info->path, "/static/video/", 14) == 0) {
     if (strcmp(ext, ".mp4") == 0) {
       strcpy(return_info->type, "video/mp4");
@@ -211,6 +213,8 @@ void handle_static(int sock, info_type *info, return_info_t *return_info) {
 
     get_file_info(fp, return_info);
     return_info->code = 200;
+
+    fclose(fp);
 
   } else if (strncmp(info->path, "/static/css/", 12) == 0) {
     if (strcmp(ext, ".css") != 0) {
@@ -233,6 +237,8 @@ void handle_static(int sock, info_type *info, return_info_t *return_info) {
 
     return_info->code = 200;
 
+    fclose(fp);
+
   } else if (strncmp(info->path, "/static/js/", 11) == 0 &&
              strcmp(ext, ".js") == 0) {
     strcpy(return_info->type, "application/javascript");
@@ -246,6 +252,8 @@ void handle_static(int sock, info_type *info, return_info_t *return_info) {
 
     get_file_info(fp, return_info);
     return_info->code = 200;
+
+    fclose(fp);
 
   } else {
     return_info->code = 404;
