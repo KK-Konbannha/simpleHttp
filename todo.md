@@ -3,8 +3,9 @@
 - localhostと有線, 無線(自宅LAN)の3パターンで実験を行う。
 - keep-aliveありとなしの2パターンをそれぞれについて実験を行う。
 - サーバ側は0(default), 1(select), 2(thread), 3(fork), 4(epoll)の5パターンについて実験を行う。
-- 総回数は2から2の20乗までの2の累乗回数で、同時接続数は2から2の15乗までの2の累乗回数で行う。
-- ただし、同時接続数は総回数よりも小さい値にする。
+- 総接続回数は2から2の20乗までの2の累乗回数で、同時接続数は2から2の15乗までの2の累乗回数で行う。
+- これをそれぞれの総接続、同時接続数に対して3回ずつ行ない平均を取る。
+- ただし、同時接続数は総接続回数よりも小さい値とする。
 
 ## 予想
 
@@ -47,11 +48,15 @@
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-localhost-keep-alive.txt
-    ab -n $i -c $j -k http://localhost:10000/ >> result-localhost-keep-alive.txt
-    echo "" >> result-localhost-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j -k http://localhost:10000/ >> result-localhost-keep-alive.txt
+      echo "" >> result-localhost-keep-alive.txt
+    done
   done
 done
 ```
@@ -83,11 +88,15 @@ done
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-localhost-no-keep-alive.txt
-    ab -n $i -c $j http://localhost:10000/ >> result-localhost-no-keep-alive.txt
-    echo "" >> result-localhost-no-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j http://localhost:10000/ >> result-localhost-no-keep-alive.txt
+      echo "" >> result-localhost-no-keep-alive.txt
+    done
   done
 done
 ```
@@ -107,11 +116,15 @@ done
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-wired-keep-alive.txt
-    ab -n $i -c $j -k http://192.168.1.101:10000/ >> result-wired-keep-alive.txt
-    echo "" >> result-wired-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j -k http://192.168.1.101:10000/ >> result-wired-keep-alive.txt
+      echo "" >> result-wired-keep-alive.txt
+    done
   done
 done
 ```
@@ -125,11 +138,15 @@ done
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-wired-no-keep-alive.txt
-    ab -n $i -c $j http://192.168.1.101:10000/ >> result-wired-no-keep-alive.txt
-    echo "" >> result-wired-no-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j http://192.168.1.101:10000/ >> result-wired-no-keep-alive.txt
+      echo "" >> result-wired-no-keep-alive.txt
+    done
   done
 done
 ```
@@ -149,11 +166,15 @@ done
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-wireless-keep-alive.txt
-    ab -n $i -c $j -k http://192.168.2.101:10000/ >> result-wireless-keep-alive.txt
-    echo "" >> result-wireless-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j -k http://192.168.2.101:10000/ >> result-wireless-keep-alive.txt
+      echo "" >> result-wireless-keep-alive.txt
+    done
   done
 done
 ```
@@ -167,11 +188,15 @@ done
 ```bash
 for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
 do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 16)))');
+  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
     echo "i: $i, j: $j" >> result-wireless-no-keep-alive.txt
-    ab -n $i -c $j http://192.168.2.101:10000/ >> result-wireless-no-keep-alive.txt
-    echo "" >> result-wireless-no-keep-alive.txt
+
+    for k in {1..3};
+    do
+      ab -n $i -c $j http://192.168.2.101:10000/ >> result-wireless-no-keep-alive.txt
+      echo "" >> result-wireless-no-keep-alive.txt
+    done
   done
 done
 ```
