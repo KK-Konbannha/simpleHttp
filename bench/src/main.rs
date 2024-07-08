@@ -25,13 +25,14 @@ fn main() -> io::Result<()> {
         .expect("Cannot open file");
 
     // ヘッダを書き込み
-    writeln!(file, "Total Connections,Concurrent Connections,Time taken for tests(s),Failed requests,Time per request(ms)")?;
+    writeln!(file, "Total Connections,Concurrent Connections,Time taken for tests(s),Failed requests,Time per request(ms),Time per request across all concurrent requests(ms)")?;
 
     for i in (0..=max_i).map(|x| 2_usize.pow(x)) {
         for j in (0..=max_j).map(|x| 2_usize.pow(x)).take_while(|&j| j <= i) {
             let mut total_time_taken = 0.0;
             let mut total_failed_requests = 0;
             let mut total_time_per_request = 0.0;
+            let mut total_time_per_request_across_request = 0.0;
 
             for _ in 0..iterations {
                 let output = Command::new("ab")
@@ -39,10 +40,12 @@ fn main() -> io::Result<()> {
                     .arg(i.to_string())
                     .arg("-c")
                     .arg(j.to_string())
+                    .arg("-s")
+                    .arg("3")
                     .arg("-k")
                     .arg("http://localhost:10000/")
                     .output()
-                    .expect("Failed to execute ab command");
+                    .expect("Failed to execute timeout ab command");
 
                 let output_str = String::from_utf8_lossy(&output.stdout);
 
@@ -65,20 +68,28 @@ fn main() -> io::Result<()> {
                     .and_then(|s| f64::from_str(s).ok())
                     .unwrap_or(0.0);
 
+                let time_per_request_across_request = output_str.lines()
+                    .find(|line| line.starts_with("Time per request") && line.contains("(mean, across all concurrent requests)"))
+                    .and_then(|line| line.split_whitespace().nth(3))
+                    .and_then(|s| f64::from_str(s).ok())
+                    .unwrap_or(0.0);
+
                 total_time_taken += time_taken;
                 total_failed_requests += failed_requests;
                 total_time_per_request += time_per_request;
+                total_time_per_request_across_request += time_per_request_across_request;
             }
 
             let avg_time_taken = total_time_taken / iterations as f64;
             let avg_failed_requests = total_failed_requests as f64 / iterations as f64;
             let avg_time_per_request = total_time_per_request / iterations as f64;
+            let avg_time_per_request_across_request = total_time_per_request_across_request / iterations as f64;
 
             // CSVファイルに書き込み
             writeln!(
                 file,
-                "{},{},{:.3},{},{:.3}",
-                i, j, avg_time_taken, avg_failed_requests, avg_time_per_request
+                "{},{},{:.3},{},{:.3},{:.3}",
+                i, j, avg_time_taken, avg_failed_requests, avg_time_per_request, avg_time_per_request_across_request
             )?;
         }
     }
