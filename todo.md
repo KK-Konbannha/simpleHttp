@@ -46,7 +46,7 @@
 #### 1.1.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
@@ -86,7 +86,7 @@ done
 #### 1.2.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
@@ -114,7 +114,7 @@ done
 #### 2.1.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
@@ -136,7 +136,7 @@ done
 #### 2.2.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
@@ -164,7 +164,7 @@ done
 #### 3.1.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
@@ -186,7 +186,7 @@ done
 #### 3.2.1. コード
 
 ```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(1, 21)))');
+for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
 do
   for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
   do
