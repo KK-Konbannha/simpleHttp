@@ -7,8 +7,8 @@ use std::str::FromStr;
 fn main() -> io::Result<()> {
     // コマンドライン引数を取得
     let args: Vec<String> = env::args().collect();
-    if args.len() != 5 {
-        eprintln!("Usage: {} <output_file> <max_i> <max_j> <iterations>", args[0]);
+    if args.len() != 8 {
+        eprintln!("Usage: {} <output_file> <max_i> <max_j> <iterations> <ip> <port> <is_keep_alive>", args[0]);
         std::process::exit(1);
     }
 
@@ -16,6 +16,9 @@ fn main() -> io::Result<()> {
     let max_i: u32 = args[2].parse().expect("max_i should be a number");
     let max_j: u32 = args[3].parse().expect("max_j should be a number");
     let iterations: u32 = args[4].parse().expect("iterations should be a number");
+    let ip = &args[5];
+    let port: u32 = args[6].parse().expect("port should be a number");
+    let is_keep_alive: bool = args[7].parse().expect("is_keep_alive should be a boolean");
 
     // CSVファイルを開き、追記モードで準備
     let mut file = OpenOptions::new()
@@ -35,17 +38,22 @@ fn main() -> io::Result<()> {
             let mut total_time_per_request_across_request = 0.0;
 
             for _ in 0..iterations {
-                let output = Command::new("ab")
-                    .arg("-n")
-                    .arg(i.to_string())
-                    .arg("-c")
-                    .arg(j.to_string())
-                    .arg("-s")
-                    .arg("3")
-                    .arg("-k")
-                    .arg("http://localhost:10000/")
-                    .output()
-                    .expect("Failed to execute timeout ab command");
+                let mut command = Command::new("ab");
+                command.arg("-n")
+                       .arg(i.to_string())
+                       .arg("-c")
+                       .arg(j.to_string())
+                       .arg("-s")
+                       .arg("3");
+
+                if is_keep_alive {
+                    command.arg("-k");
+                }
+
+                command.arg(format!("http://{}:{}/", ip, port));
+
+                let output = command.output()
+                    .expect("Failed to execute ab command");
 
                 let output_str = String::from_utf8_lossy(&output.stdout);
 
