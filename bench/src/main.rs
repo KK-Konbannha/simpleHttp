@@ -30,12 +30,26 @@ fn main() -> io::Result<()> {
     // ヘッダを書き込み
     writeln!(file, "Total Connections,Concurrent Connections,Time taken for tests(s),Failed requests,Time per request(ms),Time per request across all concurrent requests(ms)")?;
 
+
     for i in (0..=max_i).map(|x| 2_usize.pow(x)) {
+
+        let mut found_error = false;
+
         for j in (0..=max_j).map(|x| 2_usize.pow(x)).take_while(|&j| j <= i) {
             let mut total_time_taken = 0.0;
             let mut total_failed_requests = 0;
             let mut total_time_per_request = 0.0;
             let mut total_time_per_request_across_request = 0.0;
+
+            if found_error {
+                writeln!(
+                    file,
+                    "{},{},{:.3},{},{:.3},{:.3}",
+                    i, j, total_time_taken, total_failed_requests, total_time_per_request, total_time_per_request_across_request
+                )?;
+
+                continue;
+            }
 
             for _ in 0..iterations {
                 let mut command = Command::new("ab");
@@ -99,6 +113,10 @@ fn main() -> io::Result<()> {
                 "{},{},{:.3},{},{:.3},{:.3}",
                 i, j, avg_time_taken, avg_failed_requests, avg_time_per_request, avg_time_per_request_across_request
             )?;
+
+            if avg_time_taken == 0.0 && avg_failed_requests == 0.0 && avg_time_per_request == 0.0 && avg_time_per_request_across_request == 0.0 {
+                found_error = true;
+            }
         }
     }
 

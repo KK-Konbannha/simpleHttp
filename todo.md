@@ -1,11 +1,21 @@
 ## 概要
 
+- サーバは全ての場合でraspberry pi 4 model b 4GBを使用する。
 - localhostと有線, 無線(自宅LAN)の3パターンで実験を行う。
 - keep-aliveありとなしの2パターンをそれぞれについて実験を行う。
 - サーバ側は0(default), 1(select), 2(thread), 3(fork), 4(epoll)の5パターンについて実験を行う。
-- 総接続回数は2から2の20乗までの2の累乗回数で、同時接続数は2から2の15乗までの2の累乗回数で行う。
+- 総接続回数は2から2の10乗までの2の累乗回数で、同時接続数も2から2の10乗までの2の累乗回数で行う。
 - これをそれぞれの総接続、同時接続数に対して3回ずつ行ない平均を取る。
 - ただし、同時接続数は総接続回数よりも小さい値とする。
+- ベンチマークソフトにはabコマンドを用いる。
+- スクリプトをrustで記述し、それを用いてabコマンドを実行しcsvファイルを作成する。
+- pythonのmatplotlibを使用してcsvを加工しグラフを作成する。
+
+### rustスクリプトの使用方法
+
+```bash
+./target/release/bench <output_file> <max_i> <max_j> <iterations> <ip> <port> <is_keep_alive>
+```
 
 ## 予想
 
@@ -41,67 +51,44 @@
 - サーバ側は0(default), 1(select), 2(thread), 3(fork), 4(epoll)の5パターンについて実験を行う。
 - クライアント側はlocalhostで実験を行う。
 
+```bash
+for i in {0..5}
+do
+./target/release/bench result/localhost/keep-alive/$i.csv 10 10 3 localhost 10000 true
+./target/release/bench result/localhost/no-keep-alive/$i.csv 10 10 3 localhost 10000 false
+
+check=n
+while true
+do
+    if [ ${check} = "y" ];then
+        break
+    fi
+    echo -n "continue? (y/n): " && read check
+done
+done
+```
+
 ### 1.1. keep-aliveあり
 
-#### 1.1.1. コード
+#### 1.1.1. default
 
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-localhost-keep-alive.txt
+##### 1.1.1.1. Time taken for tests/総回数、同時接続数グラフ
 
-    for k in {1..3};
-    do
-      ab -n $i -c $j -k http://localhost:10000/ >> result-localhost-keep-alive.txt
-      echo "" >> result-localhost-keep-alive.txt
-    done
-  done
-done
-```
+##### 1.1.1.2. Time per request/総回数、同時接続数グラフ
 
-#### 1.1.2. 結果
+##### 1.1.1.3. Failed requests/総回数、同時接続数グラフ
 
-##### 1.1.2.1. default
+##### 1.1.1.4. まとめ
 
-###### 1.1.2.1.1. Time taken for tests/総回数、同時接続数グラフ
+#### 1.1.2. select
 
-###### 1.1.2.1.2. Time per request/総回数、同時接続数グラフ
+#### 1.1.3. thread
 
-###### 1.1.2.1.3. Failed requests/総回数、同時接続数グラフ
+#### 1.1.4. fork
 
-###### 1.1.2.1.4. まとめ
-
-##### 1.1.2.2. select
-
-##### 1.1.2.3. thread
-
-##### 1.1.2.4. fork
-
-##### 1.1.2.5 epoll
+#### 1.1.5 epoll
 
 ### 1.2. keep-aliveなし
-
-#### 1.2.1. コード
-
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-localhost-no-keep-alive.txt
-
-    for k in {1..3};
-    do
-      ab -n $i -c $j http://localhost:10000/ >> result-localhost-no-keep-alive.txt
-      echo "" >> result-localhost-no-keep-alive.txt
-    done
-  done
-done
-```
-
-#### 1.2.2. 結果
 
 ## 2. 有線
 
@@ -109,49 +96,26 @@ done
 - サーバ側は0(default), 1(select), 2(thread), 3(fork), 4(epoll)の5パターンについて実験を行う。
 - クライアントをサーバに直接有線で接続して実験を行う。
 
+```bash
+for i in {0..5}
+do
+./target/release/bench result/wired/keep-alive/$i.csv 10 10 3 192.168.1.101 10000 true
+./target/release/bench result/wired/no-keep-alive/$i.csv 10 10 3 192.168.1.101 10000 false
+
+check=n
+while true
+do
+    if [ ${check} = "y" ];then
+        break
+    fi
+    echo -n "continue? (y/n): " && read check
+done
+done
+```
+
 ### 2.1. keep-aliveあり
 
-#### 2.1.1. コード
-
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-wired-keep-alive.txt
-
-    for k in {1..3};
-    do
-      ab -n $i -c $j -k http://192.168.1.101:10000/ >> result-wired-keep-alive.txt
-      echo "" >> result-wired-keep-alive.txt
-    done
-  done
-done
-```
-
-#### 2.1.2. 結果
-
 ### 2.2. keep-aliveなし
-
-#### 2.2.1. コード
-
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-wired-no-keep-alive.txt
-
-    for k in {1..3};
-    do
-      ab -n $i -c $j http://192.168.1.101:10000/ >> result-wired-no-keep-alive.txt
-      echo "" >> result-wired-no-keep-alive.txt
-    done
-  done
-done
-```
-
-#### 2.2.2. 結果
 
 ## 3. 無線(自宅LAN)
 
@@ -159,46 +123,23 @@ done
 - サーバ側は0(default), 1(select), 2(thread), 3(fork), 4(epoll)の5パターンについて実験を行う。
 - クライアントをサーバに自宅の無線LANを介して接続して実験を行う。
 
+```bash
+for i in {0..5}
+do
+./target/release/bench result/wireless/keep-alive/$i.csv 10 10 3 192.168.2.101 10000 true
+./target/release/bench result/wireless/no-keep-alive/$i.csv 10 10 3 192.168.2.101 10000 false
+
+check=n
+while true
+do
+    if [ ${check} = "y" ];then
+        break
+    fi
+    echo -n "continue? (y/n): " && read check
+done
+done
+```
+
 ### 3.1. keep-aliveあり
 
-#### 3.1.1. コード
-
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-wireless-keep-alive.txt
-
-    for k in {1..3};
-    do
-      ab -n $i -c $j -k http://192.168.2.101:10000/ >> result-wireless-keep-alive.txt
-      echo "" >> result-wireless-keep-alive.txt
-    done
-  done
-done
-```
-
-#### 3.1.2. 結果
-
 ### 3.2. keep-aliveなし
-
-#### 3.2.1. コード
-
-```bash
-for i in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 21)))');
-do
-  for j in $(python -c 'print(" ".join(str(2 ** i) for i in range(0, 16)))');
-  do
-    echo "i: $i, j: $j" >> result-wireless-no-keep-alive.txt
-
-    for k in {1..3};
-    do
-      ab -n $i -c $j http://192.168.2.101:10000/ >> result-wireless-no-keep-alive.txt
-      echo "" >> result-wireless-no-keep-alive.txt
-    done
-  done
-done
-```
-
-#### 3.2.2. 結果
